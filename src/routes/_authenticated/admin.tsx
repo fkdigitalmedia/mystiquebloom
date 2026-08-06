@@ -69,14 +69,14 @@ function AdminPage() {
 
   if (loading) return null;
 
-  if (role !== "admin") {
+  if (role === "customer" || !role) {
     return (
       <div className="min-h-screen bg-obsidian text-cream">
         <SiteHeader />
         <main className="mx-auto max-w-2xl px-6 py-24 text-center">
-          <h1 className="font-serif text-4xl mb-4">Admin Access Only</h1>
+          <h1 className="font-serif text-4xl mb-4">Management Access Only</h1>
           <p className="text-cream/60 mb-8">
-            You must be granted the admin role to view this page.
+            You must be granted an administrative, manager, or staff role to view this page.
           </p>
           <Link
             to="/account"
@@ -89,7 +89,7 @@ function AdminPage() {
     );
   }
 
-  const NAV: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; group: string }[] = [
+  const ALL_NAV: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; group: string }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, group: "Overview" },
     { id: "reports", label: "Reports", icon: BarChart3, group: "Overview" },
     { id: "orders", label: "Orders", icon: ShoppingBag, group: "Commerce" },
@@ -123,6 +123,17 @@ function AdminPage() {
     { id: "settings", label: "Store Settings", icon: Settings, group: "System" },
     { id: "cache", label: "Cache", icon: Eraser, group: "System" },
   ];
+
+  const NAV = ALL_NAV.filter((item) => {
+    if (role === "admin") return true;
+    if (role === "manager") {
+      return !["roles", "audit", "automations", "integrations", "data", "settings", "cache"].includes(item.id);
+    }
+    if (role === "staff") {
+      return ["dashboard", "orders", "returns", "products", "inventory", "messages"].includes(item.id);
+    }
+    return false;
+  });
 
   const grouped = NAV.reduce<Record<string, typeof NAV>>((acc, item) => {
     (acc[item.group] ||= []).push(item);

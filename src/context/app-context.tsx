@@ -10,7 +10,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type Role = "admin" | "customer";
+type Role = "admin" | "manager" | "staff" | "customer";
 
 type AuthState = {
   user: User | null;
@@ -120,10 +120,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         supabase.from("wishlist").select("product_id").eq("user_id", user.id),
       ]);
       const ADMIN_EMAILS = ["goanews2068@gmail.com"];
-      const isAdmin =
-        roles?.some((r) => r.role === "admin") ||
-        (user.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false);
-      setRole(isAdmin ? "admin" : "customer");
+      const userRoles = (roles ?? []).map((r: any) => r.role as string);
+
+      let userRole: Role = "customer";
+      if (userRoles.includes("admin") || (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase()))) {
+        userRole = "admin";
+      } else if (userRoles.includes("manager")) {
+        userRole = "manager";
+      } else if (userRoles.includes("staff")) {
+        userRole = "staff";
+      }
+
+      setRole(userRole);
       setItems(cart);
       setWishIds(new Set((wish.data ?? []).map((w: any) => w.product_id)));
     })();
