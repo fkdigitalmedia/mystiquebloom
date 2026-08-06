@@ -1,7 +1,10 @@
-﻿
-CREATE TYPE public.app_role AS ENUM ('admin', 'customer');
+﻿DO $$ BEGIN
+  CREATE TYPE public.app_role AS ENUM ('admin', 'customer');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TABLE public.user_roles (
+CREATE TABLE IF NOT EXISTS public.user_roles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role app_role NOT NULL DEFAULT 'customer',
@@ -11,6 +14,7 @@ CREATE TABLE public.user_roles (
 GRANT SELECT ON public.user_roles TO authenticated;
 GRANT ALL ON public.user_roles TO service_role;
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "users read own roles" ON public.user_roles;
 CREATE POLICY "users read own roles" ON public.user_roles FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
@@ -18,7 +22,7 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
   SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role);
 $$;
 
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text,
   email text,
@@ -30,6 +34,9 @@ CREATE TABLE public.profiles (
 GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
 GRANT ALL ON public.profiles TO service_role;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "profiles self read" ON public.profiles;
+DROP POLICY IF EXISTS "profiles self insert" ON public.profiles;
+DROP POLICY IF EXISTS "profiles self update" ON public.profiles;
 CREATE POLICY "profiles self read" ON public.profiles FOR SELECT TO authenticated USING (auth.uid() = id);
 CREATE POLICY "profiles self insert" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
 CREATE POLICY "profiles self update" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
@@ -44,9 +51,10 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
-CREATE TABLE public.collections (
+CREATE TABLE IF NOT EXISTS public.collections (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug text UNIQUE NOT NULL,
   name text NOT NULL,
@@ -60,10 +68,12 @@ CREATE TABLE public.collections (
 GRANT SELECT ON public.collections TO anon, authenticated;
 GRANT ALL ON public.collections TO service_role;
 ALTER TABLE public.collections ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "collections public read" ON public.collections;
+DROP POLICY IF EXISTS "collections admin all" ON public.collections;
 CREATE POLICY "collections public read" ON public.collections FOR SELECT TO anon, authenticated USING (is_published = true);
 CREATE POLICY "collections admin all" ON public.collections FOR ALL TO authenticated USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
-CREATE TABLE public.products (
+CREATE TABLE IF NOT EXISTS public.products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug text UNIQUE NOT NULL,
   name text NOT NULL,
@@ -91,10 +101,12 @@ CREATE TABLE public.products (
 GRANT SELECT ON public.products TO anon, authenticated;
 GRANT ALL ON public.products TO service_role;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "products public read" ON public.products;
+DROP POLICY IF EXISTS "products admin all" ON public.products;
 CREATE POLICY "products public read" ON public.products FOR SELECT TO anon, authenticated USING (is_published = true);
 CREATE POLICY "products admin all" ON public.products FOR ALL TO authenticated USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
-CREATE TABLE public.wishlist (
+CREATE TABLE IF NOT EXISTS public.wishlist (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
@@ -104,9 +116,10 @@ CREATE TABLE public.wishlist (
 GRANT SELECT, INSERT, DELETE ON public.wishlist TO authenticated;
 GRANT ALL ON public.wishlist TO service_role;
 ALTER TABLE public.wishlist ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "wishlist self" ON public.wishlist;
 CREATE POLICY "wishlist self" ON public.wishlist FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE TABLE public.cart_items (
+CREATE TABLE IF NOT EXISTS public.cart_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
@@ -117,9 +130,10 @@ CREATE TABLE public.cart_items (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.cart_items TO authenticated;
 GRANT ALL ON public.cart_items TO service_role;
 ALTER TABLE public.cart_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "cart self" ON public.cart_items;
 CREATE POLICY "cart self" ON public.cart_items FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE TABLE public.orders (
+CREATE TABLE IF NOT EXISTS public.orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   order_number text UNIQUE NOT NULL DEFAULT ('MB-' || upper(substr(gen_random_uuid()::text, 1, 8))),
@@ -133,11 +147,14 @@ CREATE TABLE public.orders (
 GRANT SELECT, INSERT ON public.orders TO authenticated;
 GRANT ALL ON public.orders TO service_role;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "orders self read" ON public.orders;
+DROP POLICY IF EXISTS "orders self insert" ON public.orders;
+DROP POLICY IF EXISTS "orders admin update" ON public.orders;
 CREATE POLICY "orders self read" ON public.orders FOR SELECT TO authenticated USING (auth.uid() = user_id OR public.has_role(auth.uid(),'admin'));
 CREATE POLICY "orders self insert" ON public.orders FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "orders admin update" ON public.orders FOR UPDATE TO authenticated USING (public.has_role(auth.uid(),'admin'));
 
-CREATE TABLE public.order_items (
+CREATE TABLE IF NOT EXISTS public.order_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
   product_id uuid REFERENCES public.products(id) ON DELETE SET NULL,
@@ -149,6 +166,8 @@ CREATE TABLE public.order_items (
 GRANT SELECT, INSERT ON public.order_items TO authenticated;
 GRANT ALL ON public.order_items TO service_role;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "order_items self read" ON public.order_items;
+DROP POLICY IF EXISTS "order_items insert with order" ON public.order_items;
 CREATE POLICY "order_items self read" ON public.order_items FOR SELECT TO authenticated
   USING (EXISTS (SELECT 1 FROM public.orders o WHERE o.id = order_id AND (o.user_id = auth.uid() OR public.has_role(auth.uid(),'admin'))));
 CREATE POLICY "order_items insert with order" ON public.order_items FOR INSERT TO authenticated
