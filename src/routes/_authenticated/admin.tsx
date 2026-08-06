@@ -3130,7 +3130,7 @@ function CustomersTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id,full_name,avatar_url,loyalty_points,created_at")
+        .select("id,full_name,email,phone,avatar_url,loyalty_points,created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -3171,7 +3171,12 @@ function CustomersTab() {
   const filtered = (profiles ?? []).filter((p: any) => {
     if (!search) return true;
     const s = search.toLowerCase();
-    return (p.full_name ?? "").toLowerCase().includes(s) || p.id.toLowerCase().includes(s);
+    return (
+      (p.full_name ?? "").toLowerCase().includes(s) ||
+      (p.email ?? "").toLowerCase().includes(s) ||
+      (p.phone ?? "").toLowerCase().includes(s) ||
+      p.id.toLowerCase().includes(s)
+    );
   });
 
   async function setRole(userId: string, role: "admin" | "manager" | "staff" | "customer") {
@@ -3245,13 +3250,13 @@ function CustomersTab() {
                       {p.avatar_url ? (
                         <img src={p.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-cream/10 flex items-center justify-center text-[10px] text-cream/60">
-                          {(p.full_name ?? "?").slice(0, 1).toUpperCase()}
+                        <div className="w-8 h-8 rounded-full bg-cream/10 flex items-center justify-center text-[10px] text-cream/60 font-serif">
+                          {(p.full_name || p.email || "?").slice(0, 1).toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="truncate">{p.full_name ?? "Anonymous"}</p>
-                        <p className="text-[10px] text-cream/40 truncate">{p.id.slice(0, 8)}…</p>
+                        <p className="truncate font-medium">{p.full_name || p.email || "Anonymous"}</p>
+                        <p className="text-[10px] text-cream/40 truncate">{p.email || p.id.slice(0, 8)}</p>
                       </div>
                     </div>
                   </td>
@@ -5933,6 +5938,7 @@ function ReportsTab() {
     </div>
   );
 }
+
 
 const RETURN_STATUSES = ["pending", "approved", "rejected", "refunded", "closed"] as const;
 type ReturnStatus = typeof RETURN_STATUSES[number];

@@ -91,7 +91,7 @@ async function fetchDashboard() {
       .from("products")
       .select("id", { count: "exact", head: true })
       .eq("stock", 0),
-    supabase.from("profiles").select("id,full_name,created_at", { count: "exact" }),
+    supabase.from("profiles").select("id,full_name,email,created_at", { count: "exact" }),
     supabase
       .from("orders")
       .select("id", { count: "exact", head: true })
@@ -104,7 +104,7 @@ async function fetchDashboard() {
       .limit(6),
     supabase
       .from("profiles")
-      .select("id,full_name,created_at")
+      .select("id,full_name,email,created_at")
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
@@ -465,7 +465,10 @@ export function AdminDashboard() {
             <ul className="divide-y divide-cream/5">
               {data.latestCustomers.map((c: any) => (
                 <li key={c.id} className="py-3 flex items-center justify-between text-sm">
-                  <span className="truncate">{c.full_name ?? "Anonymous"}</span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm">{c.full_name || c.email || "Anonymous"}</p>
+                    {c.email && c.full_name && <p className="text-[10px] text-cream/40 truncate">{c.email}</p>}
+                  </div>
                   <span className="text-[10px] uppercase tracking-[0.2em] text-cream/40">
                     {new Date(c.created_at).toLocaleDateString("en-IN")}
                   </span>
