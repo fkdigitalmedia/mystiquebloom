@@ -206,7 +206,7 @@ BEGIN
 END;
 $$;
 
-CREATE TABLE public.blog_posts (
+CREATE TABLE IF NOT EXISTS public.blog_posts (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
@@ -224,14 +224,17 @@ GRANT SELECT ON public.blog_posts TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.blog_posts TO authenticated;
 GRANT ALL ON public.blog_posts TO service_role;
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public can read published posts" ON public.blog_posts;
+DROP POLICY IF EXISTS "Admins manage posts" ON public.blog_posts;
 CREATE POLICY "Public can read published posts" ON public.blog_posts FOR SELECT
   USING (published = true OR public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "Admins manage posts" ON public.blog_posts FOR ALL TO authenticated
   USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
+DROP TRIGGER IF EXISTS update_blog_posts_updated_at ON public.blog_posts;
 CREATE TRIGGER update_blog_posts_updated_at BEFORE UPDATE ON public.blog_posts
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
-CREATE TABLE public.gift_boxes (
+CREATE TABLE IF NOT EXISTS public.gift_boxes (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
@@ -248,6 +251,10 @@ CREATE TABLE public.gift_boxes (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.gift_boxes TO authenticated;
 GRANT ALL ON public.gift_boxes TO service_role;
 ALTER TABLE public.gift_boxes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users view own gift boxes" ON public.gift_boxes;
+DROP POLICY IF EXISTS "Users insert own gift boxes" ON public.gift_boxes;
+DROP POLICY IF EXISTS "Users update own gift boxes" ON public.gift_boxes;
+DROP POLICY IF EXISTS "Admins delete gift boxes" ON public.gift_boxes;
 CREATE POLICY "Users view own gift boxes" ON public.gift_boxes FOR SELECT TO authenticated
   USING (auth.uid() = user_id OR public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "Users insert own gift boxes" ON public.gift_boxes FOR INSERT TO authenticated
@@ -257,6 +264,7 @@ CREATE POLICY "Users update own gift boxes" ON public.gift_boxes FOR UPDATE TO a
   WITH CHECK (auth.uid() = user_id OR public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "Admins delete gift boxes" ON public.gift_boxes FOR DELETE TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
+DROP TRIGGER IF EXISTS update_gift_boxes_updated_at ON public.gift_boxes;
 CREATE TRIGGER update_gift_boxes_updated_at BEFORE UPDATE ON public.gift_boxes
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
