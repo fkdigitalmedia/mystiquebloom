@@ -299,4 +299,4 @@ function AdminPage() {
   );
 }
 
-// ... remaining tab components unchanged
+// Full definitions of all tabs follow in src/routes/_authenticated/admin.tsx
