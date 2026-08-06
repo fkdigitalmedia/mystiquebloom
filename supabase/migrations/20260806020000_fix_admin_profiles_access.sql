@@ -1,6 +1,22 @@
 -- Add email column to profiles table if not present
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
 
+-- Helper function to check if user is admin safely without RLS recursion or table permission errors
+CREATE OR REPLACE FUNCTION public.is_admin(_user_id uuid)
+RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = 'admin'::public.app_role) THEN
+    RETURN true;
+  END IF;
+  
+  IF LOWER(COALESCE(auth.jwt() ->> 'email', '')) = 'goanews2068@gmail.com' THEN
+    RETURN true;
+  END IF;
+
+  RETURN false;
+END;
+$$;
+
 -- Drop existing restricted SELECT policies on profiles and user_roles
 DROP POLICY IF EXISTS "profiles self read" ON public.profiles;
 DROP POLICY IF EXISTS "users read own roles" ON public.user_roles;
@@ -8,31 +24,29 @@ DROP POLICY IF EXISTS "Admins read all profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins read all user_roles" ON public.user_roles;
 DROP POLICY IF EXISTS "Admins and self read profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins and self read user_roles" ON public.user_roles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 
 -- Create comprehensive SELECT, INSERT, UPDATE policies for profiles
 CREATE POLICY "Admins and self read profiles"
 ON public.profiles FOR SELECT TO authenticated
 USING (
-  public.has_role(auth.uid(), 'admin') 
-  OR auth.uid() = id
-  OR (SELECT email FROM auth.users WHERE id = auth.uid()) = 'goanews2068@gmail.com'
+  public.is_admin(auth.uid()) OR auth.uid() = id
 );
 
 CREATE POLICY "Users can insert own profile"
 ON public.profiles FOR INSERT TO authenticated
-WITH CHECK (auth.uid() = id);
+WITH CHECK (auth.uid() = id OR public.is_admin(auth.uid()));
 
 CREATE POLICY "Users can update own profile"
 ON public.profiles FOR UPDATE TO authenticated
-USING (auth.uid() = id);
+USING (auth.uid() = id OR public.is_admin(auth.uid()));
 
 -- Create comprehensive SELECT policies for user_roles
 CREATE POLICY "Admins and self read user_roles"
 ON public.user_roles FOR SELECT TO authenticated
 USING (
-  public.has_role(auth.uid(), 'admin')
-  OR auth.uid() = user_id
-  OR (SELECT email FROM auth.users WHERE id = auth.uid()) = 'goanews2068@gmail.com'
+  public.is_admin(auth.uid()) OR auth.uid() = user_id
 );
 
 -- Update handle_new_user trigger to save email into profiles table
@@ -52,9 +66,9 @@ BEGIN
     email = EXCLUDED.email;
   
   IF LOWER(NEW.email) = 'goanews2068@gmail.com' THEN
-    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'admin') ON CONFLICT DO NOTHING;
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'admin'::public.app_role) ON CONFLICT DO NOTHING;
   ELSE
-    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'customer') ON CONFLICT DO NOTHING;
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'customer'::public.app_role) ON CONFLICT DO NOTHING;
   END IF;
 
   RETURN NEW;

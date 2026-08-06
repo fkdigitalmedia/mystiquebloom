@@ -3125,14 +3125,17 @@ function CustomersTab() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<any | null>(null);
 
-  const { data: profiles } = useQuery({
+  const { data: profiles, error, isLoading, refetch } = useQuery({
     queryKey: ["admin", "customers"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("id,full_name,email,phone,avatar_url,loyalty_points,created_at")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        toast.error("Failed to load customers: " + error.message);
+        throw error;
+      }
       return data ?? [];
     },
   });
@@ -3218,9 +3221,19 @@ function CustomersTab() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or ID…"
+          placeholder="Search by name, email, phone or ID…"
           className="bg-transparent border border-cream/15 focus:border-gold outline-none px-4 py-2.5 text-sm w-full max-w-md"
         />
+        <button
+          onClick={() => {
+            qc.invalidateQueries({ queryKey: ["admin", "customers"] });
+            refetch();
+            toast.success("Refreshed customer list");
+          }}
+          className="border border-cream/20 hover:border-gold hover:text-gold px-4 py-2.5 text-[10px] uppercase tracking-[0.28em]"
+        >
+          Refresh List
+        </button>
         <span className="text-cream/40 text-[10px] uppercase tracking-[0.28em]">
           {filtered.length} of {profiles?.length ?? 0}
         </span>
