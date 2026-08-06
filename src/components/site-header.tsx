@@ -6,7 +6,7 @@ import { useAuth, useCart } from "@/context/app-context";
 import { useCompare } from "@/lib/use-compare";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigationSettings, DEFAULT_NAV } from "@/lib/use-site-settings";
-import logoAsset from "@/assets/mystique-blends-logo.png.asset.json";
+import logoImg from "@/assets/logo.png";
 
 type FooterPage = { slug: string; title: string; showInFooter?: boolean };
 
@@ -69,7 +69,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
         {/* Wordmark */}
         <Link to="/" className="flex items-center leading-none shrink-0 lg:px-8" aria-label="Mystique Blends">
           <img
-            src={logoAsset.url}
+            src={logoImg}
             alt="Mystique Blends"
             className="h-12 md:h-14 w-auto object-contain"
             style={{ filter: "invert(1) brightness(1.05)" }}
@@ -150,7 +150,7 @@ function SiteFooterInner() {
         <div className="col-span-2">
           <div className="flex items-center leading-none">
             <img
-              src={logoAsset.url}
+              src={logoImg}
               alt="Mystique Blends"
               className="h-14 w-auto object-contain"
               style={{ filter: "invert(1) brightness(1.05)" }}
