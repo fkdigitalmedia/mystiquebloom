@@ -73,4 +73,4 @@ CREATE TRIGGER update_product_reviews_updated_at
   BEFORE UPDATE ON public.product_reviews
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
-CREATE INDEX product_reviews_product_id_idx ON public.product_reviews(product_id);
+CREATE INDEX IF NOT EXISTS product_reviews_product_id_idx ON public.product_reviews(product_id);
