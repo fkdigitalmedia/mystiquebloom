@@ -1,4 +1,4 @@
-import { Clock, Droplets, Package, ShieldCheck, Sparkles } from "lucide-react";
+import { Clock, Droplets, Package, ShieldCheck, Sparkles, Award, Leaf } from "lucide-react";
 
 export function MobileProductWhyLove() {
   const highlights = [
@@ -21,6 +21,16 @@ export function MobileProductWhyLove() {
       icon: ShieldCheck,
       title: "Skin Friendly",
       desc: "100% IFRA Compliant",
+    },
+    {
+      icon: Leaf,
+      title: "Premium Ingredients",
+      desc: "Natural Oud & Mysore Sandal",
+    },
+    {
+      icon: Award,
+      title: "Authentic Product",
+      desc: "Direct House Distillation",
     },
   ];
 

@@ -28,7 +28,7 @@ import { MobileProductGallery } from "@/components/mobile/mobile-product-gallery
 import { MobileProductNotes } from "@/components/mobile/mobile-product-notes";
 import { MobileProductWhyLove } from "@/components/mobile/mobile-product-why-love";
 import { MobileFrequentlyBought } from "@/components/mobile/mobile-frequently-bought";
-import { MobileStickyPurchaseBar } from "@/components/mobile/mobile-sticky-purchase-bar";
+import { MobileProductPage as MobileProductLayout } from "@/components/mobile/mobile-product-page";
 
 export const Route = createFileRoute("/product/$slug")({
   loader: async ({ params }) => {
@@ -198,8 +198,8 @@ function ProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian text-cream font-sans pb-safe-nav md:pb-0">
-      <SiteHeader />
+    <>
+      {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -209,305 +209,308 @@ function ProductPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
-      {/* Main product container */}
-      <main className="mx-auto max-w-7xl px-0 md:px-6 py-0 md:py-12">
-        {/* Desktop Breadcrumbs */}
-        <nav aria-label="Breadcrumb" className="hidden md:block text-xs uppercase tracking-[0.2em] text-cream/40 mb-8 px-6">
-          <Link to="/">Home</Link> <span className="mx-2">/</span>
-          <Link to="/shop">Shop</Link> <span className="mx-2">/</span>
-          <span className="text-cream/70">{product.name}</span>
-        </nav>
+      {/* DEDICATED MOBILE LAYOUT (< 768px) */}
+      <div className="block md:hidden">
+        <MobileProductLayout product={product} recentProducts={recentProducts} />
+      </div>
 
-        {/* Product Details Grid */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
-          {/* Left: Mobile Touch Gallery & Lightbox */}
-          <div className="w-full">
-            <MobileProductGallery
-              product={product}
-              isWished={wished}
-              onToggleWishlist={() => toggleWish(product.id)}
-            />
-          </div>
+      {/* DESKTOP LAYOUT (>= 768px) */}
+      <div className="hidden md:block min-h-screen bg-obsidian text-cream font-sans">
+        <SiteHeader />
+        <main className="mx-auto max-w-7xl px-6 py-12">
+          {/* Desktop Breadcrumbs */}
+          <nav aria-label="Breadcrumb" className="text-xs uppercase tracking-[0.2em] text-cream/40 mb-8 px-6">
+            <Link to="/">Home</Link> <span className="mx-2">/</span>
+            <Link to="/shop">Shop</Link> <span className="mx-2">/</span>
+            <span className="text-cream/70">{product.name}</span>
+          </nav>
 
-          {/* Right: Product Details & Options */}
-          <div className="px-5 md:px-0 space-y-6">
-            {/* Fragrance Family & Name */}
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.35em] text-gold font-bold bg-gold/10 px-2.5 py-1 rounded-full border border-gold/30 inline-block mb-2">
-                {product.fragrance_family || "Luxury Collection"}
-              </span>
-              <h1 className="font-serif text-3xl md:text-5xl leading-tight text-cream">
-                {product.name}
-              </h1>
-              <p className="mt-2 text-cream/60 text-sm md:text-base">{product.subtitle}</p>
-
-              {/* Rating & Stock Status */}
-              <div className="mt-3 flex items-center gap-3 text-xs text-cream/70">
-                <div className="flex items-center gap-1.5 bg-graphite/60 border border-gold/30 px-2.5 py-1 rounded-full text-gold">
-                  <Star size={13} fill="currentColor" />
-                  <span className="font-bold">{product.rating || 4.9}</span>
-                  <span className="text-cream/40 text-[10px]">
-                    ({product.review_count || 38} reviews)
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-emerald-400 font-medium">
-                    {product.stock > 5
-                      ? "In Stock"
-                      : product.stock > 0
-                        ? `Only ${product.stock} left!`
-                        : "Out of Stock"}
-                  </span>
-                </div>
-              </div>
+          {/* Product Details Grid */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
+            {/* Left: Mobile Touch Gallery & Lightbox */}
+            <div className="w-full">
+              <MobileProductGallery
+                product={product}
+                isWished={wished}
+                onToggleWishlist={() => toggleWish(product.id)}
+              />
             </div>
 
-            {/* Price & Discount display */}
-            <div className="p-4 rounded-xl bg-graphite/40 border border-cream/10 flex items-center justify-between">
+            {/* Right: Product Details & Options */}
+            <div className="px-0 space-y-6">
+              {/* Fragrance Family & Name */}
               <div>
-                <span className="text-[10px] uppercase tracking-wider text-cream/50 block">
-                  Price ({currentSizeObj.label})
+                <span className="text-[10px] uppercase tracking-[0.35em] text-gold font-bold bg-gold/10 px-2.5 py-1 rounded-full border border-gold/30 inline-block mb-2">
+                  {product.fragrance_family || "Luxury Collection"}
                 </span>
-                <div className="flex items-baseline gap-3 mt-0.5">
-                  <span className="font-serif text-3xl text-gold font-bold">
-                    {formatINR(calculatedPrice)}
-                  </span>
-                  {calculatedComparePrice && (
-                    <span className="line-through text-cream/40 text-sm font-sans">
-                      {formatINR(calculatedComparePrice)}
+                <h1 className="font-serif text-5xl leading-tight text-cream">
+                  {product.name}
+                </h1>
+                <p className="mt-2 text-cream/60 text-base">{product.subtitle}</p>
+
+                {/* Rating & Stock Status */}
+                <div className="mt-3 flex items-center gap-3 text-xs text-cream/70">
+                  <div className="flex items-center gap-1.5 bg-graphite/60 border border-gold/30 px-2.5 py-1 rounded-full text-gold">
+                    <Star size={13} fill="currentColor" />
+                    <span className="font-bold">{product.rating || 4.9}</span>
+                    <span className="text-cream/40 text-[10px]">
+                      ({product.review_count || 38} reviews)
                     </span>
-                  )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-emerald-400 font-medium">
+                      {product.stock > 5
+                        ? "In Stock"
+                        : product.stock > 0
+                          ? `Only ${product.stock} left!`
+                          : "Out of Stock"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {discountPercent > 0 && (
-                <span className="bg-gold text-obsidian px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-lg">
-                  Save {discountPercent}%
-                </span>
-              )}
-            </div>
-
-            {/* Delivery Badge */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-gold/5 border border-gold/20 text-xs text-cream/80">
-              <Truck size={18} className="text-gold shrink-0" />
-              <div>
-                <span className="font-semibold text-gold">Free Express Shipping</span>
-                <p className="text-cream/50 text-[11px]">
-                  Delivered in 2-3 business days across India
-                </p>
-              </div>
-            </div>
-
-            {/* Variant Selector - Bottle Sizes */}
-            <div>
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs uppercase tracking-[0.25em] text-gold font-semibold">
-                  Select Size / Variant
-                </span>
-                <span className="text-[10px] text-cream/50">Touch chip to swap</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {BOTTLE_SIZES.map((size) => {
-                  const isSelected = size.id === selectedSize;
-                  return (
-                    <button
-                      key={size.id}
-                      onClick={() => setSelectedSize(size.id)}
-                      className={`px-4 py-2.5 rounded-xl text-xs font-medium border transition-all ${
-                        isSelected
-                          ? "bg-gold text-obsidian border-gold font-bold shadow-md scale-[1.02]"
-                          : "bg-graphite/40 border-cream/15 text-cream hover:border-gold/50"
-                      }`}
-                    >
-                      {size.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Fragrance Accord Notes Cards */}
-            <MobileProductNotes
-              topNotes={product.notes_top}
-              heartNotes={product.notes_heart}
-              baseNotes={product.notes_base}
-            />
-
-            {/* Why You'll Love It */}
-            <MobileProductWhyLove />
-
-            {/* Expandable Product Description */}
-            <div className="py-4 border-t border-cream/10">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-serif text-2xl text-cream tracking-wide">
-                  Description & Story
-                </h3>
-              </div>
-              <div
-                className={`text-cream/80 text-sm leading-relaxed space-y-3 transition-all ${
-                  !descExpanded ? "line-clamp-3" : ""
-                }`}
-              >
-                <p>{product.description || product.subtitle}</p>
-                <p>
-                  Hand-distilled in traditional deg-bhapka copper stills in Kannauj using 100%
-                  natural hydro-distillation. Blended with organic jojoba and sandalwood base for
-                  luxurious skin feel and projection.
-                </p>
-              </div>
-              <button
-                onClick={() => setDescExpanded(!descExpanded)}
-                className="mt-2 text-xs font-semibold uppercase tracking-wider text-gold hover:text-cream flex items-center gap-1"
-              >
-                <span>{descExpanded ? "Read Less" : "Read More"}</span>
-                {descExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
-            </div>
-
-            {/* Desktop Quick Quantity & Cart Button */}
-            <div className="hidden md:flex items-center gap-4 pt-4 border-t border-cream/10">
-              <div className="flex items-center border border-cream/20 rounded-lg">
-                <button
-                  onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="w-11 h-11 grid place-items-center hover:text-gold"
-                >
-                  <Minus size={14} />
-                </button>
-                <span className="w-12 text-center text-sm font-semibold">{qty}</span>
-                <button
-                  onClick={() => setQty(qty + 1)}
-                  className="w-11 h-11 grid place-items-center hover:text-gold"
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-
-              <button
-                onClick={() => addToCart(product.id, qty)}
-                disabled={product.stock <= 0}
-                className="flex-1 bg-gold text-obsidian py-4 rounded-xl text-xs uppercase tracking-[0.28em] font-bold hover:bg-cream disabled:opacity-40 transition-colors shadow-xl"
-              >
-                {product.stock > 0 ? "Add to Cart" : "Sold Out"}
-              </button>
-
-              <button
-                onClick={() => toggleWish(product.id)}
-                aria-label="Wishlist"
-                className={`h-14 w-14 rounded-xl grid place-items-center border ${
-                  wished
-                    ? "bg-gold border-gold text-obsidian"
-                    : "border-cream/20 hover:border-gold hover:text-gold"
-                }`}
-              >
-                <Heart size={18} fill={wished ? "currentColor" : "none"} />
-              </button>
-
-              <button
-                onClick={() => toggleCompare(product.id)}
-                aria-label="Compare"
-                title={inCompare ? "Remove from compare" : "Add to compare"}
-                className={`h-14 w-14 rounded-xl grid place-items-center border ${
-                  inCompare
-                    ? "bg-gold border-gold text-obsidian"
-                    : "border-cream/20 hover:border-gold hover:text-gold"
-                }`}
-              >
-                <GitCompareArrows size={18} />
-              </button>
-            </div>
-
-            {/* Frequently Bought Together Bundle */}
-            <MobileFrequentlyBought currentProduct={activeProductState} />
-
-            {/* Luxury Trust Badges */}
-            <div className="py-6 border-t border-cream/10">
-              <span className="text-[10px] uppercase tracking-[0.25em] text-gold font-semibold block mb-3">
-                Mystique Promise
-              </span>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
-                  <Lock size={16} className="text-gold shrink-0" />
-                  <span>256-Bit Secure Payment</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
-                  <RotateCcw size={16} className="text-gold shrink-0" />
-                  <span>30-Day Easy Returns</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
-                  <Truck size={16} className="text-gold shrink-0" />
-                  <span>Express Dispatch in 24h</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
-                  <Award size={16} className="text-gold shrink-0" />
-                  <span>100% Authentic Product</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Customer Reviews Section */}
-        <div className="px-5 md:px-0 mt-8">
-          <ProductReviews productId={product.id} />
-        </div>
-
-        {/* Related Fragrances Horizontal Scroll */}
-        <div className="px-5 md:px-0 mt-12">
-          <RelatedProducts
-            productId={product.id}
-            collectionId={product.collection_id ?? null}
-            family={product.fragrance_family ?? null}
-          />
-        </div>
-
-        {/* Recently Viewed Horizontal Scroll */}
-        {recentProducts.length > 0 && (
-          <div className="px-5 md:px-0 mt-12 py-8 border-t border-cream/10">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-gold" />
-                <h3 className="font-serif text-2xl text-cream tracking-wide">Recently Viewed</h3>
-              </div>
-              <span className="text-[10px] uppercase tracking-widest text-gold font-semibold">
-                Archive History
-              </span>
-            </div>
-
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-5 px-5 md:mx-0 md:px-0">
-              {recentProducts.map((p) => (
-                <Link
-                  key={p.id}
-                  to="/product/$slug"
-                  params={{ slug: p.slug }}
-                  className="flex-[0_0_160px] md:flex-[0_0_200px] bg-graphite/40 border border-cream/10 rounded-xl p-3 hover:border-gold/50 transition-all group"
-                >
-                  <img
-                    src={resolveImg(p.image_url)}
-                    alt={p.name}
-                    className="w-full aspect-[3/4] object-cover rounded-lg bg-obsidian mb-2.5 group-hover:scale-105 transition-transform"
-                  />
-                  <span className="text-[9px] uppercase tracking-wider text-gold block truncate">
-                    {p.fragrance_family}
+              {/* Price & Discount display */}
+              <div className="p-4 rounded-xl bg-graphite/40 border border-cream/10 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-cream/50 block">
+                    Price ({currentSizeObj.label})
                   </span>
-                  <p className="font-serif text-sm text-cream truncate group-hover:text-gold">
-                    {p.name}
+                  <div className="flex items-baseline gap-3 mt-0.5">
+                    <span className="font-serif text-3xl text-gold font-bold">
+                      {formatINR(calculatedPrice)}
+                    </span>
+                    {calculatedComparePrice && (
+                      <span className="line-through text-cream/40 text-sm font-sans">
+                        {formatINR(calculatedComparePrice)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {discountPercent > 0 && (
+                  <span className="bg-gold text-obsidian px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-lg">
+                    Save {discountPercent}%
+                  </span>
+                )}
+              </div>
+
+              {/* Delivery Badge */}
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-gold/5 border border-gold/20 text-xs text-cream/80">
+                <Truck size={18} className="text-gold shrink-0" />
+                <div>
+                  <span className="font-semibold text-gold">Free Express Shipping</span>
+                  <p className="text-cream/50 text-[11px]">
+                    Delivered in 2-3 business days across India
                   </p>
-                  <p className="text-xs font-serif text-gold font-semibold mt-1">
-                    {formatINR(p.price_inr)}
+                </div>
+              </div>
+
+              {/* Variant Selector - Bottle Sizes */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-xs uppercase tracking-[0.25em] text-gold font-semibold">
+                    Select Size / Variant
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {BOTTLE_SIZES.map((size) => {
+                    const isSelected = size.id === selectedSize;
+                    return (
+                      <button
+                        key={size.id}
+                        onClick={() => setSelectedSize(size.id)}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-medium border transition-all ${
+                          isSelected
+                            ? "bg-gold text-obsidian border-gold font-bold shadow-md scale-[1.02]"
+                            : "bg-graphite/40 border-cream/15 text-cream hover:border-gold/50"
+                        }`}
+                      >
+                        {size.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Fragrance Accord Notes Cards */}
+              <MobileProductNotes
+                topNotes={product.notes_top}
+                heartNotes={product.notes_heart}
+                baseNotes={product.notes_base}
+              />
+
+              {/* Why You'll Love It */}
+              <MobileProductWhyLove />
+
+              {/* Expandable Product Description */}
+              <div className="py-4 border-t border-cream/10">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-serif text-2xl text-cream tracking-wide">
+                    Description & Story
+                  </h3>
+                </div>
+                <div
+                  className={`text-cream/80 text-sm leading-relaxed space-y-3 transition-all ${
+                    !descExpanded ? "line-clamp-3" : ""
+                  }`}
+                >
+                  <p>{product.description || product.subtitle}</p>
+                  <p>
+                    Hand-distilled in traditional deg-bhapka copper stills in Kannauj using 100%
+                    natural hydro-distillation. Blended with organic jojoba and sandalwood base for
+                    luxurious skin feel and projection.
                   </p>
-                </Link>
-              ))}
+                </div>
+                <button
+                  onClick={() => setDescExpanded(!descExpanded)}
+                  className="mt-2 text-xs font-semibold uppercase tracking-wider text-gold hover:text-cream flex items-center gap-1"
+                >
+                  <span>{descExpanded ? "Read Less" : "Read More"}</span>
+                  {descExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+              </div>
+
+              {/* Desktop Quick Quantity & Cart Button */}
+              <div className="flex items-center gap-4 pt-4 border-t border-cream/10">
+                <div className="flex items-center border border-cream/20 rounded-lg">
+                  <button
+                    onClick={() => setQty(Math.max(1, qty - 1))}
+                    className="w-11 h-11 grid place-items-center hover:text-gold"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="w-12 text-center text-sm font-semibold">{qty}</span>
+                  <button
+                    onClick={() => setQty(qty + 1)}
+                    className="w-11 h-11 grid place-items-center hover:text-gold"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => addToCart(product.id, qty)}
+                  disabled={product.stock <= 0}
+                  className="flex-1 bg-gold text-obsidian py-4 rounded-xl text-xs uppercase tracking-[0.28em] font-bold hover:bg-cream disabled:opacity-40 transition-colors shadow-xl"
+                >
+                  {product.stock > 0 ? "Add to Cart" : "Sold Out"}
+                </button>
+
+                <button
+                  onClick={() => toggleWish(product.id)}
+                  aria-label="Wishlist"
+                  className={`h-14 w-14 rounded-xl grid place-items-center border ${
+                    wished
+                      ? "bg-gold border-gold text-obsidian"
+                      : "border-cream/20 hover:border-gold hover:text-gold"
+                  }`}
+                >
+                  <Heart size={18} fill={wished ? "currentColor" : "none"} />
+                </button>
+
+                <button
+                  onClick={() => toggleCompare(product.id)}
+                  aria-label="Compare"
+                  title={inCompare ? "Remove from compare" : "Add to compare"}
+                  className={`h-14 w-14 rounded-xl grid place-items-center border ${
+                    inCompare
+                      ? "bg-gold border-gold text-obsidian"
+                      : "border-cream/20 hover:border-gold hover:text-gold"
+                  }`}
+                >
+                  <GitCompareArrows size={18} />
+                </button>
+              </div>
+
+              {/* Frequently Bought Together Bundle */}
+              <MobileFrequentlyBought currentProduct={activeProductState} />
+
+              {/* Luxury Trust Badges */}
+              <div className="py-6 border-t border-cream/10">
+                <span className="text-[10px] uppercase tracking-[0.25em] text-gold font-semibold block mb-3">
+                  Mystique Promise
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
+                    <Lock size={16} className="text-gold shrink-0" />
+                    <span>256-Bit Secure Payment</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
+                    <RotateCcw size={16} className="text-gold shrink-0" />
+                    <span>30-Day Easy Returns</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
+                    <Truck size={16} className="text-gold shrink-0" />
+                    <span>Express Dispatch in 24h</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-xs text-cream/80 bg-graphite/30 p-2.5 rounded-lg border border-cream/10">
+                    <Award size={16} className="text-gold shrink-0" />
+                    <span>100% Authentic Product</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        )}
-      </main>
 
-      {/* Mobile Sticky Bottom Purchase Bar */}
-      <MobileStickyPurchaseBar product={activeProductState} selectedSize={currentSizeObj.label} />
+          {/* Customer Reviews Section */}
+          <div className="mt-8">
+            <ProductReviews productId={product.id} />
+          </div>
 
-      <SiteFooter />
-    </div>
+          {/* Related Fragrances Horizontal Scroll */}
+          <div className="mt-12">
+            <RelatedProducts
+              productId={product.id}
+              collectionId={product.collection_id ?? null}
+              family={product.fragrance_family ?? null}
+            />
+          </div>
+
+          {/* Recently Viewed Horizontal Scroll */}
+          {recentProducts.length > 0 && (
+            <div className="px-4 md:px-0 mt-12 py-8 border-t border-cream/10 w-full max-w-full overflow-hidden">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={18} className="text-gold" />
+                  <h3 className="font-serif text-2xl text-cream tracking-wide">Recently Viewed</h3>
+                </div>
+                <span className="text-[10px] uppercase tracking-widest text-gold font-semibold">
+                  Archive History
+                </span>
+              </div>
+
+              <div className="flex gap-3.5 overflow-x-auto no-scrollbar pb-4 w-full max-w-full">
+                {recentProducts.map((p) => (
+                  <Link
+                    key={p.id}
+                    to="/product/$slug"
+                    params={{ slug: p.slug }}
+                    className="flex-[0_0_160px] md:flex-[0_0_200px] bg-graphite/40 border border-cream/10 rounded-xl p-3 hover:border-gold/50 transition-all group"
+                  >
+                    <img
+                      src={resolveImg(p.image_url)}
+                      alt={p.name}
+                      className="w-full aspect-[3/4] object-cover rounded-lg bg-obsidian mb-2.5 group-hover:scale-105 transition-transform"
+                    />
+                    <span className="text-[9px] uppercase tracking-wider text-gold block truncate">
+                      {p.fragrance_family}
+                    </span>
+                    <p className="font-serif text-sm text-cream truncate group-hover:text-gold">
+                      {p.name}
+                    </p>
+                    <p className="text-xs font-serif text-gold font-semibold mt-1">
+                      {formatINR(p.price_inr)}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
+        <SiteFooter />
+      </div>
+    </>
   );
 }
