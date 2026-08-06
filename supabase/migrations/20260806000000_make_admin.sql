@@ -1,3 +1,6 @@
+-- Ensure email column exists on profiles table
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
+
 -- Assign admin role to goanews2068@gmail.com
 INSERT INTO public.user_roles (user_id, role)
 SELECT id, 'admin'::public.app_role

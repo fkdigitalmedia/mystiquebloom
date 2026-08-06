@@ -21,6 +21,7 @@ $$;
 CREATE TABLE public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text,
+  email text,
   phone text,
   avatar_url text,
   created_at timestamptz NOT NULL DEFAULT now(),
