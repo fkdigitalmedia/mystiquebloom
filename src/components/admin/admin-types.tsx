@@ -226,3 +226,26 @@ export const DEFAULT_INTEGRATIONS: IntegrationRow[] = [
 export type OrderRow = { id: string; created_at: string; total_inr: number; status: string; user_id: string };
 
 export type ReturnStatus = "requested" | "approved" | "rejected" | "picked_up" | "refunded" | "cancelled";
+
+export async function saveSiteSetting(key: string, value: any) {
+  const { data: existing, error: selectErr } = await supabase
+    .from("site_settings")
+    .select("id")
+    .eq("key", key)
+    .maybeSingle();
+
+  if (selectErr && selectErr.code !== 'PGRST116') throw selectErr;
+
+  if (existing?.id) {
+    const { error: updateErr } = await supabase
+      .from("site_settings")
+      .update({ value, updated_at: new Date().toISOString() })
+      .eq("id", existing.id);
+    if (updateErr) throw updateErr;
+  } else {
+    const { error: insertErr } = await supabase
+      .from("site_settings")
+      .insert({ key, value });
+    if (insertErr) throw insertErr;
+  }
+}

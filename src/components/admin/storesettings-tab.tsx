@@ -9,7 +9,7 @@ import { ImageUpload, GalleryUpload } from "@/components/image-upload";
 import {
   logAudit, slugify, Panel, Field, Toggle, Text,
   EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
-  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore, saveSiteSetting,
   IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
 } from "./admin-types";
 import {
@@ -54,12 +54,15 @@ export function StoreSettingsTab() {
 
   async function save() {
     if (!draft) return;
-    const { error } = await supabase.from("site_settings").upsert({ key: "store", value: draft as never });
-    if (error) { toast.error(error.message); return; }
-    setCurrent(draft);
-    setDraft(null);
-    await logAudit("store_settings_update");
-    toast.success("Store settings saved");
+    try {
+      await saveSiteSetting("store", draft);
+      setCurrent(draft);
+      setDraft(null);
+      await logAudit("store_settings_update");
+      toast.success("Store settings saved");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save store settings");
+    }
   }
 
   const s = view.store ?? DEFAULT_STORE.store;
