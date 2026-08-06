@@ -82,6 +82,6 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- BACKFILL: Copy all existing auth.users to public.user_roles
 INSERT INTO public.user_roles (user_id, role)
-SELECT id, CASE WHEN LOWER(email) = 'goanews2068@gmail.com' THEN 'admin' ELSE 'customer' END
+SELECT id, CASE WHEN LOWER(email) = 'goanews2068@gmail.com' THEN 'admin'::public.app_role ELSE 'customer'::public.app_role END
 FROM auth.users
 ON CONFLICT (user_id, role) DO NOTHING;
