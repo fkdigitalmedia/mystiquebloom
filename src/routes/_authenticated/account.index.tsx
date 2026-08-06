@@ -13,6 +13,7 @@ import {
   UserCog,
   ChevronRight,
   ArrowUpRight,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "@/context/app-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/account/")({
 });
 
 function DashboardHome() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const uid = user?.id;
 
   const { data: orders } = useQuery({
@@ -102,6 +103,28 @@ function DashboardHome() {
 
   return (
     <div className="space-y-8 pb-24 md:pb-8">
+      {role && role !== "customer" && (
+        <div className="border border-gold/40 bg-gold/10 p-5 rounded-sm flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <Shield className="text-gold w-6 h-6 shrink-0" />
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] font-medium text-gold">
+                {role === "admin" ? "Super Admin" : role === "manager" ? "Store Manager" : "Staff Member"} Role Active
+              </p>
+              <p className="text-[11px] text-cream/70 mt-0.5">
+                You have active store management permissions.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/admin"
+            className="bg-gold text-obsidian px-5 py-2.5 text-[10px] uppercase tracking-[0.25em] font-medium hover:bg-cream transition-colors"
+          >
+            Open Management Portal →
+          </Link>
+        </div>
+      )}
+
       {/* Greeting */}
       <section className="relative overflow-hidden border border-cream/10 bg-gradient-to-br from-graphite/60 via-obsidian to-obsidian p-8 md:p-10">
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-gold/10 blur-3xl pointer-events-none" />

@@ -99,13 +99,28 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
             <Link to={user ? "/wishlist" : "/auth"} aria-label="Wishlist" className="hidden sm:inline-flex text-cream/70 hover:text-gold transition-colors">
               <Heart size={18} strokeWidth={1} />
             </Link>
-            <Link
-              to={user ? (role === "admin" ? "/admin" : "/account") : "/auth"}
-              className="flex items-center gap-2 px-3 md:px-4 h-9 rounded-sm border border-cream/20 hover:border-gold text-cream hover:text-gold transition-colors text-[10px] uppercase tracking-[0.25em] font-medium shrink-0"
-            >
-              <User size={14} strokeWidth={1.5} className="text-gold" />
-              <span>{user ? (role === "admin" ? "Admin" : "Account") : "Login"}</span>
-            </Link>
+            {(() => {
+              const isStaffOrAdmin = role && role !== "customer";
+              return (
+                <Link
+                  to={user ? (isStaffOrAdmin ? "/admin" : "/account") : "/auth"}
+                  className="flex items-center gap-2 px-3 md:px-4 h-9 rounded-sm border border-cream/20 hover:border-gold text-cream hover:text-gold transition-colors text-[10px] uppercase tracking-[0.25em] font-medium shrink-0"
+                >
+                  <User size={14} strokeWidth={1.5} className="text-gold" />
+                  <span>
+                    {user
+                      ? isStaffOrAdmin
+                        ? role === "admin"
+                          ? "Admin"
+                          : role === "manager"
+                            ? "Manager"
+                            : "Staff"
+                        : "Account"
+                      : "Login"}
+                  </span>
+                </Link>
+              );
+            })()}
             <button
               onClick={() => setCartOpen(true)}
               aria-label="Cart"
@@ -129,6 +144,9 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           <div className="pt-24 px-8 flex flex-col gap-6 text-lg font-serif">
             {[
               ...nav.map((n) => ({ to: n.href, label: n.label })),
+              ...(user && role && role !== "customer"
+                ? [{ to: "/admin", label: role === "admin" ? "Admin Portal" : "Management Portal" }]
+                : []),
               { to: user ? "/account" : "/auth", label: user ? "My Account" : "Sign In" },
             ].map((l) => (
               <a key={l.to} href={l.to} className="text-cream hover:text-gold">{l.label}</a>
