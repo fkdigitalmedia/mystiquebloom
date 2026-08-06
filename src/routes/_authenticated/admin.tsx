@@ -7,6 +7,7 @@ import { useAuth } from "@/context/app-context";
 import { supabase } from "@/integrations/supabase/client";
 import { formatINR } from "@/lib/format";
 import { toast } from "sonner";
+import { uploadToBlob } from "@/lib/blob-upload";
 import { AdminDashboard } from "@/components/admin-dashboard";
 import {
   LayoutDashboard,
@@ -813,11 +814,13 @@ function CollectionsTab() {
   }
 
   async function uploadImage(id: string, file: File) {
-    const path = `collections/${id}-${Date.now()}-${file.name.replace(/[^a-z0-9.\-_]/gi, "_")}`;
-    const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
-    if (upErr) return toast.error(upErr.message);
-    const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
-    await update(id, "image_url", pub.publicUrl);
+    try {
+      const publicUrl = await uploadToBlob(file, "collections");
+      await update(id, "image_url", publicUrl);
+      toast.success("Image updated");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    }
   }
 
   async function addCollection() {
@@ -4736,20 +4739,16 @@ function MediaLibraryTab() {
     let ok = 0;
     for (const file of Array.from(fileList)) {
       if (!file.type.startsWith("image/")) continue;
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} exceeds 5MB`);
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds 10MB`);
         continue;
       }
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const prefix = folder ? `${folder}/` : "media/";
-      const filename = `${prefix}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage
-        .from("product-images")
-        .upload(filename, file, { cacheControl: "31536000" });
-      if (error) toast.error(error.message);
-      else {
+      try {
+        const publicUrl = await uploadToBlob(file, folder || "media");
         ok++;
-        await logAudit("media.upload", "storage", filename, { size: file.size });
+        await logAudit("media.upload", "storage", publicUrl, { size: file.size });
+      } catch (err: any) {
+        toast.error(err.message || `Failed to upload ${file.name}`);
       }
     }
     setUploading(false);
