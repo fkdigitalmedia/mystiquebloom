@@ -9,7 +9,7 @@ import { ImageUpload, GalleryUpload } from "@/components/image-upload";
 import {
   logAudit, slugify, Panel, Field, Toggle, Text,
   EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
-  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore, saveSiteSetting,
   IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
 } from "./admin-types";
 import {
@@ -38,9 +38,13 @@ export function IntegrationsTab() {
 
   const toggle = async (id: string) => {
     const next = rows.map((r) => (r.id === id ? { ...r, connected: !r.connected } : r));
-    await supabase.from("site_settings").upsert({ key: "integrations", value: { items: next } as never });
-    qc.invalidateQueries({ queryKey: ["site_settings", "integrations"] });
-    toast.success("Integration toggled");
+    try {
+      await saveSiteSetting("integrations", { items: next });
+      qc.invalidateQueries({ queryKey: ["site_settings", "integrations"] });
+      toast.success("Integration toggled");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update integration");
+    }
   };
 
   if (isLoading) return <p className="text-cream/50 text-sm">Loading integrations…</p>;

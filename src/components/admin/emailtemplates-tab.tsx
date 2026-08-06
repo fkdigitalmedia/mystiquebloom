@@ -9,7 +9,7 @@ import { ImageUpload, GalleryUpload } from "@/components/image-upload";
 import {
   logAudit, slugify, Panel, Field, Toggle, Text,
   EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
-  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore, saveSiteSetting,
   IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
 } from "./admin-types";
 import {
@@ -37,11 +37,15 @@ export function EmailTemplatesTab() {
 
   async function saveTemplate(updated: EmailTemplate) {
     const next = templates.map((t) => (t.id === updated.id ? updated : t));
-    await supabase.from("site_settings").upsert({ key: "email_templates", value: { templates: next } as never });
-    qc.invalidateQueries({ queryKey: ["admin", "site_settings", "email_templates"] });
-    setEditing(null);
-    await logAudit("email_template_update", "email_templates", updated.id);
-    toast.success("Email template saved");
+    try {
+      await saveSiteSetting("email_templates", { templates: next });
+      qc.invalidateQueries({ queryKey: ["admin", "site_settings", "email_templates"] });
+      setEditing(null);
+      await logAudit("email_template_update", "email_templates", updated.id);
+      toast.success("Email template saved");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save template");
+    }
   }
 
   if (isLoading) return <p className="text-cream/50 text-sm">Loading email templates…</p>;

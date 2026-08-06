@@ -9,7 +9,7 @@ import { ImageUpload, GalleryUpload } from "@/components/image-upload";
 import {
   logAudit, slugify, Panel, Field, Toggle, Text,
   EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
-  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore, saveSiteSetting,
   IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
 } from "./admin-types";
 import {
@@ -35,10 +35,14 @@ export function AutomationsTab() {
   useEffect(() => { load(); }, []);
 
   async function save(next: Automation[]) {
-    await supabase.from("site_settings").upsert({ key: "automations", value: { rules: next } as never });
-    setRules(next);
-    await logAudit("automations_update");
-    toast.success("Automations saved");
+    try {
+      await saveSiteSetting("automations", { rules: next });
+      setRules(next);
+      await logAudit("automations_update");
+      toast.success("Automations saved");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save automations");
+    }
   }
 
   const toggle = (id: string) => {
@@ -129,6 +133,8 @@ export function AutomationsTab() {
                 </select>
               </Field>
             </div>
+            <Toggle label="Enable Automation Rule" checked={editing.enabled} onChange={(v) => setEditing({ ...editing, enabled: v })} />
+
             <div className="flex gap-3 pt-2">
               <button onClick={saveRule} className="bg-gold text-obsidian px-6 py-2 text-[10px] uppercase tracking-[0.24em] font-bold">
                 Save Rule
