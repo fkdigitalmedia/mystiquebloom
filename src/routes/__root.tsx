@@ -7,12 +7,15 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppProvider } from "@/context/app-context";
-import { CartDrawer } from "@/components/cart-drawer";
+import { MobileCartDrawer } from "@/components/mobile/mobile-cart-drawer";
+import { MobileBottomNav } from "@/components/mobile/bottom-nav";
+import { MobileSearchModal } from "@/components/mobile/mobile-search-modal";
+import { MobileCategoriesDrawer } from "@/components/mobile/mobile-categories-drawer";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -79,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
       { name: "theme-color", content: "#0a0a0a" },
       { name: "author", content: "Mystique Blends" },
       { property: "og:type", content: "website" },
@@ -125,12 +128,29 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
         <Outlet />
-        <CartDrawer />
+
+        {/* Global Mobile Application Controls */}
+        <MobileBottomNav
+          onOpenSearch={() => setSearchOpen(true)}
+          onOpenCategories={() => setCategoriesOpen(true)}
+        />
+        <MobileSearchModal
+          isOpen={searchOpen}
+          onClose={() => setSearchOpen(false)}
+        />
+        <MobileCategoriesDrawer
+          isOpen={categoriesOpen}
+          onClose={() => setCategoriesOpen(false)}
+        />
+        <MobileCartDrawer />
+
         <Toaster />
       </AppProvider>
     </QueryClientProvider>
