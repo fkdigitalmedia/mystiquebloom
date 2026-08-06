@@ -297,3 +297,41 @@ function AdminPage() {
     </div>
   );
 }
+
+import {
+  ProductsTab,
+  CollectionsTab,
+  BlogTab,
+  OrdersTab,
+  GiftsTab,
+  CouponsTab,
+  ReviewsTab,
+  LoyaltyTab,
+  HomepageTab,
+} from "@/components/admin/admin-tabs-commerce";
+import {
+  PagesTab,
+  NavigationTab,
+  MessagesTab,
+  CustomersTab,
+  RolesTab,
+  AuditLogsTab,
+  InventoryTab,
+  ShippingTab,
+  TaxesTab,
+  MarketingTab,
+} from "@/components/admin/admin-tabs-operations";
+import {
+  EmailTemplatesTab,
+  SeoTab,
+  MediaLibraryTab,
+  BrandingTab,
+  AutomationsTab,
+  IntegrationsTab,
+  DataBackupTab,
+  StoreSettingsTab,
+  ReportsTab,
+  ReturnsTab,
+  AbandonedCartsTab,
+  CacheTab,
+} from "@/components/admin/admin-tabs-system";
