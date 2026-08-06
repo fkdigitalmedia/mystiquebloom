@@ -89,10 +89,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Fetch role + cart + wishlist when user changes
+  // Fetch role + cart + wishlist when user changes & ensure profile exists
   useEffect(() => {
     if (!user) return;
     (async () => {
+      // Auto-upsert profile for Google OAuth & Email signups
+      const fullName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        (user.email ? user.email.split("@")[0] : "Customer");
+      const avatarUrl =
+        user.user_metadata?.avatar_url ||
+        user.user_metadata?.picture ||
+        null;
+
+      await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          full_name: fullName,
+          email: user.email ?? null,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" },
+      );
+
       const [{ data: roles }, cart, wish] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", user.id),
         fetchCart(),

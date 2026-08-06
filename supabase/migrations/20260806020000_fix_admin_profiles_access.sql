@@ -1,12 +1,6 @@
 -- Add email column to profiles table if not present
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
 
--- Backfill email from auth.users
-UPDATE public.profiles p
-SET email = u.email
-FROM auth.users u
-WHERE p.id = u.id AND (p.email IS NULL OR p.email = '');
-
 -- Drop existing restricted SELECT policies on profiles and user_roles
 DROP POLICY IF EXISTS "profiles self read" ON public.profiles;
 DROP POLICY IF EXISTS "users read own roles" ON public.user_roles;
@@ -15,7 +9,7 @@ DROP POLICY IF EXISTS "Admins read all user_roles" ON public.user_roles;
 DROP POLICY IF EXISTS "Admins and self read profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins and self read user_roles" ON public.user_roles;
 
--- Create comprehensive SELECT policies for profiles (Admins see all, users see self)
+-- Create comprehensive SELECT, INSERT, UPDATE policies for profiles
 CREATE POLICY "Admins and self read profiles"
 ON public.profiles FOR SELECT TO authenticated
 USING (
@@ -23,6 +17,14 @@ USING (
   OR auth.uid() = id
   OR (SELECT email FROM auth.users WHERE id = auth.uid()) = 'goanews2068@gmail.com'
 );
+
+CREATE POLICY "Users can insert own profile"
+ON public.profiles FOR INSERT TO authenticated
+WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile"
+ON public.profiles FOR UPDATE TO authenticated
+USING (auth.uid() = id);
 
 -- Create comprehensive SELECT policies for user_roles
 CREATE POLICY "Admins and self read user_roles"
@@ -58,3 +60,28 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- Ensure trigger is connected to auth.users table
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- BACKFILL: Copy all existing auth.users (including Google OAuth signups) to public.profiles
+INSERT INTO public.profiles (id, full_name, avatar_url, email)
+SELECT 
+  id,
+  COALESCE(raw_user_meta_data->>'full_name', raw_user_meta_data->>'name', split_part(email, '@', 1)),
+  raw_user_meta_data->>'avatar_url',
+  email
+FROM auth.users
+ON CONFLICT (id) DO UPDATE SET
+  email = EXCLUDED.email,
+  full_name = COALESCE(public.profiles.full_name, EXCLUDED.full_name),
+  avatar_url = COALESCE(public.profiles.avatar_url, EXCLUDED.avatar_url);
+
+-- BACKFILL: Copy all existing auth.users to public.user_roles
+INSERT INTO public.user_roles (user_id, role)
+SELECT id, CASE WHEN LOWER(email) = 'goanews2068@gmail.com' THEN 'admin' ELSE 'customer' END
+FROM auth.users
+ON CONFLICT (user_id, role) DO NOTHING;
