@@ -35,6 +35,7 @@ import { useHomepageSettings } from "@/lib/use-site-settings";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/app-context";
+import { resolveImg } from "@/lib/format";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -530,7 +531,7 @@ function FeaturedCollections() {
           {items.map((c: any, i: number) => {
             const span = i === 0 ? "lg:col-span-2 lg:row-span-2" : "";
             const aspect = i === 0 ? "aspect-[4/5] lg:aspect-auto lg:h-full" : "aspect-[4/5]";
-            const image = c.image_url || FALLBACK_COLLECTION_IMAGES[i % FALLBACK_COLLECTION_IMAGES.length];
+            const image = resolveImg(c.image_url) || FALLBACK_COLLECTION_IMAGES[i % FALLBACK_COLLECTION_IMAGES.length];
             return (
               <Link
                 key={c.id}
@@ -670,7 +671,7 @@ function BestSellers() {
         family: (p.subtitle || p.fragrance_family || "Fragrance") as string,
         price: Number(p.price_inr) || 0,
         original: p.compare_at_price_inr ? Number(p.compare_at_price_inr) : undefined,
-        image: (p.image_url as string) || product1,
+        image: resolveImg(p.image_url) || product1,
         rating: Number(p.rating) || 5,
         reviews: Number(p.review_count) || 0,
         badge: p.is_bestseller ? "Bestseller" : p.is_new ? "New" : undefined,
@@ -734,7 +735,7 @@ function NewArrivals() {
     family: (p.subtitle || p.fragrance_family || "Fragrance") as string,
     price: Number(p.price_inr) || 0,
     original: p.compare_at_price_inr ? Number(p.compare_at_price_inr) : undefined,
-    image: (p.image_url as string) || product1,
+    image: resolveImg(p.image_url) || product1,
     rating: Number(p.rating) || 5,
     reviews: Number(p.review_count) || 0,
     badge: p.is_new ? "New" : p.is_bestseller ? "Bestseller" : undefined,
@@ -810,7 +811,7 @@ function ProductCard({
             aria-label={p.name}
           >
             <img
-              src={p.image}
+              src={resolveImg(p.image)}
               alt={p.name}
               loading="lazy"
               className="w-full h-full object-cover transition-transform duration-[1200ms] group-hover:scale-105"
@@ -818,7 +819,7 @@ function ProductCard({
           </Link>
         ) : (
           <img
-            src={p.image}
+            src={resolveImg(p.image)}
             alt={p.name}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-[1200ms] group-hover:scale-105"
