@@ -50,24 +50,25 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
       {/* Subtle gold top edge */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
 
-      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10 h-16 md:h-20 flex items-center justify-between gap-2 md:gap-6 w-full max-w-full overflow-hidden">
-        {/* Left link group */}
-        <nav className="hidden lg:flex flex-1 items-center gap-8">
-          {leftNav.map((n) => (
-            <NavLink key={n.href} href={n.href} label={n.label} />
-          ))}
-        </nav>
-
+      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10 h-16 md:h-20 flex items-center justify-between gap-3 md:gap-6 w-full max-w-full overflow-hidden">
+        {/* Mobile Hamburger menu button (< 768px only) */}
         <button
           onClick={() => setMenuOpen(true)}
-          className="lg:hidden text-cream hover:text-gold touch-target p-2"
+          className="md:hidden text-cream hover:text-gold touch-target p-2"
           aria-label="Open menu"
         >
           <Menu size={20} />
         </button>
 
-        {/* Wordmark */}
-        <Link to="/" className="flex items-center leading-none shrink-0 lg:px-8" aria-label="Mystique Blends">
+        {/* Left link group (Desktop >= 768px) */}
+        <nav className="hidden md:flex items-center gap-5 lg:gap-8">
+          {leftNav.map((n) => (
+            <NavLink key={n.href} href={n.href} label={n.label} />
+          ))}
+        </nav>
+
+        {/* Wordmark Logo */}
+        <Link to="/" className="flex items-center leading-none shrink-0 md:px-4" aria-label="Mystique Blends">
           <img
             src={logoImg}
             alt="Mystique Blends"
@@ -77,14 +78,14 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
         </Link>
 
         {/* Right link group + icons */}
-        <div className="flex flex-1 items-center justify-end gap-2 md:gap-6 lg:gap-8">
-          <nav className="hidden xl:flex items-center gap-8">
+        <div className="flex items-center justify-end gap-3 md:gap-6">
+          <nav className="hidden md:flex items-center gap-5 lg:gap-8">
             {rightNav.map((n) => (
               <NavLink key={n.href} href={n.href} label={n.label} />
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 md:gap-5 xl:border-l xl:border-graphite xl:pl-8">
+          <div className="flex items-center gap-2 md:gap-4 md:border-l md:border-graphite md:pl-5">
             <Link to="/search" aria-label="Search" className="text-cream/70 hover:text-gold transition-colors p-2">
               <Search size={18} strokeWidth={1.5} />
             </Link>
@@ -141,7 +142,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
       <div className={`h-px w-full transition-colors ${solid ? "bg-graphite" : "bg-transparent"}`} />
 
       {menuOpen && (
-        <div className="fixed inset-0 z-[60] bg-obsidian/95 backdrop-blur-xl lg:hidden" onClick={() => setMenuOpen(false)}>
+        <div className="fixed inset-0 z-[60] bg-obsidian/95 backdrop-blur-xl md:hidden" onClick={() => setMenuOpen(false)}>
           <div className="pt-24 px-8 flex flex-col gap-6 text-lg font-serif">
             {[
               ...nav.map((n) => ({ to: n.href, label: n.label })),
@@ -153,7 +154,6 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
               <a key={l.to} href={l.to} className="text-cream hover:text-gold">{l.label}</a>
             ))}
           </div>
-
         </div>
       )}
     </header>
