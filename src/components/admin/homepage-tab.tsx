@@ -9,7 +9,7 @@ import { ImageUpload, GalleryUpload } from "@/components/image-upload";
 import {
   logAudit, slugify, Panel, Field, Toggle, Text,
   EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
-  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore, saveSiteSetting,
   IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
 } from "./admin-types";
 import {
@@ -38,11 +38,15 @@ export function HomepageTab() {
 
   async function save() {
     if (!draft) return;
-    await supabase.from("site_settings").upsert({ key: "homepage", value: draft as never });
-    qc.invalidateQueries({ queryKey: ["admin", "site_settings", "homepage"] });
-    setDraft(null);
-    await logAudit("homepage_update");
-    toast.success("Homepage content saved");
+    try {
+      await saveSiteSetting("homepage", draft);
+      qc.invalidateQueries({ queryKey: ["admin", "site_settings", "homepage"] });
+      setDraft(null);
+      await logAudit("homepage_update");
+      toast.success("Homepage content saved");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save homepage settings");
+    }
   }
 
   if (isLoading) return <p className="text-cream/50 text-sm">Loading homepage settings…</p>;

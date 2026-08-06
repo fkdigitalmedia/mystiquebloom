@@ -9,7 +9,7 @@ import { ImageUpload, GalleryUpload } from "@/components/image-upload";
 import {
   logAudit, slugify, Panel, Field, Toggle, Text,
   EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
-  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore, saveSiteSetting,
   IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
 } from "./admin-types";
 import {
@@ -47,11 +47,15 @@ export function BrandingTab() {
 
   async function save() {
     if (!draft) return;
-    await supabase.from("site_settings").upsert({ key: "branding", value: draft as never });
-    qc.invalidateQueries({ queryKey: ["admin", "site_settings", "branding"] });
-    setDraft(null);
-    await logAudit("branding_update");
-    toast.success("Branding settings saved");
+    try {
+      await saveSiteSetting("branding", draft);
+      qc.invalidateQueries({ queryKey: ["admin", "site_settings", "branding"] });
+      setDraft(null);
+      await logAudit("branding_update");
+      toast.success("Branding settings saved");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save branding settings");
+    }
   }
 
   if (isLoading) return <p className="text-cream/50 text-sm">Loading branding…</p>;
