@@ -1,40 +1,25 @@
 import { useState, useEffect, Fragment } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { formatINR } from "@/lib/format";
 import { toast } from "sonner";
-
-type StoreSettings = {
-  store: { name: string; legalName: string; supportEmail: string; supportPhone: string; businessHours: string };
-  orders: { minOrderInr: number; maxItemsPerOrder: number; autoCancelUnpaidHours: number; codEnabled: boolean; prepaidEnabled: boolean };
-  returns: { enabled: boolean; windowDays: number; policy: string };
-  cart: { abandonHours: number; freeShippingReminder: boolean };
-  reviews: { autoApprove: boolean; requirePurchase: boolean; minRating: number };
-  compliance: { gstin: string; fssai: string; cin: string; termsUrl: string; privacyUrl: string };
-  maintenance: { enabled: boolean; message: string };
-};
-
-const DEFAULT_STORE: StoreSettings = {
-  store: { name: "Mystique Blends", legalName: "Mystique Blends Private Limited", supportEmail: "care@mystiqueblends.in", supportPhone: "+91 98765 43210", businessHours: "Mon-Sat 10am-6pm IST" },
-  orders: { minOrderInr: 0, maxItemsPerOrder: 20, autoCancelUnpaidHours: 48, codEnabled: true, prepaidEnabled: false },
-  returns: { enabled: true, windowDays: 7, policy: "7-day easy returns on unopened luxury perfume boxes." },
-  cart: { abandonHours: 24, freeShippingReminder: true },
-  reviews: { autoApprove: false, requirePurchase: true, minRating: 1 },
-  compliance: { gstin: "", fssai: "", cin: "", termsUrl: "/pages/terms", privacyUrl: "/pages/privacy" },
-  maintenance: { enabled: false, message: "We're crafting something special — back shortly." },
-};
-
-function deepMergeStore(defaultObj: StoreSettings, dbObj: any): StoreSettings {
-  if (!dbObj || typeof dbObj !== "object") return defaultObj;
-  return {
-    store: { ...defaultObj.store, ...(dbObj.store || {}) },
-    orders: { ...defaultObj.orders, ...(dbObj.orders || {}) },
-    returns: { ...defaultObj.returns, ...(dbObj.returns || {}) },
-    cart: { ...defaultObj.cart, ...(dbObj.cart || {}) },
-    reviews: { ...defaultObj.reviews, ...(dbObj.reviews || {}) },
-    compliance: { ...defaultObj.compliance, ...(dbObj.compliance || {}) },
-    maintenance: { ...defaultObj.maintenance, ...(dbObj.maintenance || {}) },
-  };
-}
+import { uploadToBlob } from "@/lib/blob-upload";
+import { ImageUpload, GalleryUpload } from "@/components/image-upload";
+import {
+  logAudit, slugify, Panel, Field, Toggle, Text,
+  EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
+} from "./admin-types";
+import {
+  LayoutDashboard, Package, FolderTree, ShoppingBag, Gift, Ticket, Star, Award,
+  FileText, Menu as MenuIcon, MessageSquare, Home, ChevronLeft, Users, Shield,
+  ScrollText, Warehouse, Truck, Receipt, Megaphone, Search as SearchIcon, Mail,
+  Image as ImageIcon, Palette, Copy, Trash2, Settings, Zap, Plug, Database,
+  Download, BarChart3, RotateCcw, ShoppingCart, Eraser, Check, X, Plus, Edit,
+  Eye, EyeOff, Filter, RefreshCw, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Send
+} from "lucide-react";
 
 export function StoreSettingsTab() {
   const [current, setCurrent] = useState<StoreSettings | null>(null);
@@ -69,46 +54,40 @@ export function StoreSettingsTab() {
 
   async function save() {
     if (!draft) return;
-    const { error } = await supabase.from("site_settings").upsert({ key: "store", value: draft as any }, { onConflict: "key" });
+    const { error } = await supabase.from("site_settings").upsert({ key: "store", value: draft as never });
     if (error) { toast.error(error.message); return; }
     setCurrent(draft);
     setDraft(null);
+    await logAudit("store_settings_update");
     toast.success("Store settings saved");
   }
 
   const s = view.store ?? DEFAULT_STORE.store;
-  const o = view.orders ?? DEFAULT_STORE.orders;
-  const r = view.returns ?? DEFAULT_STORE.returns;
-  const c = view.cart ?? DEFAULT_STORE.cart;
-  const rev = view.reviews ?? DEFAULT_STORE.reviews;
-  const comp = view.compliance ?? DEFAULT_STORE.compliance;
-  const m = view.maintenance ?? DEFAULT_STORE.maintenance;
 
   return (
-    <section className="space-y-8">
-      <p className="text-cream/60 text-sm">Global store configuration, policies, and compliance details.</p>
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="border border-cream/10 p-5 space-y-4">
-          <h3 className="font-serif text-lg text-gold">Store Identity</h3>
-          <div>
-            <label className="text-[10px] uppercase tracking-wider text-cream/60 block mb-1">Store Name</label>
-            <input type="text" value={s.name ?? ""} onChange={(e) => upd("store", { name: e.target.value })} className="w-full bg-transparent border border-cream/20 px-3 py-2 text-sm text-cream focus:border-gold outline-none" />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-wider text-cream/60 block mb-1">Legal Entity</label>
-            <input type="text" value={s.legalName ?? ""} onChange={(e) => upd("store", { legalName: e.target.value })} className="w-full bg-transparent border border-cream/20 px-3 py-2 text-sm text-cream focus:border-gold outline-none" />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-wider text-cream/60 block mb-1">Support Email</label>
-            <input type="text" value={s.supportEmail ?? ""} onChange={(e) => upd("store", { supportEmail: e.target.value })} className="w-full bg-transparent border border-cream/20 px-3 py-2 text-sm text-cream focus:border-gold outline-none" />
-          </div>
+    <div className="space-y-6">
+      <Panel title="Global Store Identity & Legal Compliance" subtitle="Configure legal entity details, support contact info, GSTIN, and business hours.">
+        <div className="grid md:grid-cols-2 gap-4">
+          <Field label="Store Display Name">
+            <Text value={s.name ?? ""} onChange={(v) => upd("store", { name: v })} />
+          </Field>
+          <Field label="Legal Business Name">
+            <Text value={s.legalName ?? ""} onChange={(v) => upd("store", { legalName: v })} />
+          </Field>
+          <Field label="Support Email">
+            <Text value={s.supportEmail ?? ""} onChange={(v) => upd("store", { supportEmail: v })} />
+          </Field>
+          <Field label="Support Phone">
+            <Text value={s.supportPhone ?? ""} onChange={(v) => upd("store", { supportPhone: v })} />
+          </Field>
         </div>
-      </div>
-      <div className="flex gap-3 pt-4 border-t border-cream/10">
-        <button onClick={save} disabled={!draft} className="bg-gold text-obsidian px-8 py-3 text-[11px] uppercase tracking-[0.3em] disabled:opacity-40 font-bold">
-          Save Settings
-        </button>
-      </div>
-    </section>
+
+        <div className="flex gap-3 pt-4 border-t border-cream/10">
+          <button onClick={save} disabled={!draft} className="bg-gold text-obsidian px-8 py-3 text-[11px] uppercase tracking-[0.3em] font-bold disabled:opacity-40">
+            Save Store Settings
+          </button>
+        </div>
+      </Panel>
+    </div>
   );
 }

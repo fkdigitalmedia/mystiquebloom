@@ -1,14 +1,37 @@
-import { Truck } from "lucide-react";
+import { useState, useEffect, Fragment } from "react";
+import { Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { formatINR } from "@/lib/format";
+import { toast } from "sonner";
+import { uploadToBlob } from "@/lib/blob-upload";
+import { ImageUpload, GalleryUpload } from "@/components/image-upload";
+import {
+  logAudit, slugify, Panel, Field, Toggle, Text,
+  EMPTY_PRODUCT, Coupon, EMPTY_COUPON, EmailTemplate, DEFAULT_EMAIL_TEMPLATES,
+  SeoSettings, BrandingSettings, Automation, StoreSettings, DEFAULT_STORE, deepMergeStore,
+  IntegrationRow, DEFAULT_INTEGRATIONS, OrderRow, ReturnStatus
+} from "./admin-types";
+import {
+  LayoutDashboard, Package, FolderTree, ShoppingBag, Gift, Ticket, Star, Award,
+  FileText, Menu as MenuIcon, MessageSquare, Home, ChevronLeft, Users, Shield,
+  ScrollText, Warehouse, Truck, Receipt, Megaphone, Search as SearchIcon, Mail,
+  Image as ImageIcon, Palette, Copy, Trash2, Settings, Zap, Plug, Database,
+  Download, BarChart3, RotateCcw, ShoppingCart, Eraser, Check, X, Plus, Edit,
+  Eye, EyeOff, Filter, RefreshCw, ExternalLink, ChevronDown, ChevronUp, AlertTriangle, Send
+} from "lucide-react";
 
 export function ShippingTab() {
   return (
     <div className="space-y-6">
-      <p className="text-cream/60 text-sm">Shipping rates and delivery zone configurations.</p>
-      <div className="p-8 text-center border border-cream/10 bg-cream/[0.01]">
-        <Truck className="w-12 h-12 text-gold mx-auto mb-3 opacity-60" />
-        <h3 className="font-serif text-xl text-cream mb-1">Standard Nationwide Delivery</h3>
-        <p className="text-xs text-cream/60">Flat ₹99 shipping across India. Free shipping on orders above ₹1,999.</p>
-      </div>
+      <Panel title="Shipping & Logistics Rates" subtitle="Configure nationwide shipping tariffs, courier integrations, and free delivery thresholds.">
+        <div className="space-y-4">
+          <div className="border border-cream/10 p-4 space-y-2">
+            <h3 className="font-serif text-gold text-lg">Standard Delivery Nationwide</h3>
+            <p className="text-cream/60 text-xs">Flat ₹99 shipping across India. Free delivery auto-applied for orders above ₹1,999.</p>
+          </div>
+        </div>
+      </Panel>
     </div>
   );
 }
