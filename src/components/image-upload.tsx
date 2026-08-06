@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { uploadToBlob } from "@/lib/blob-upload";
 
 interface Props {
   value?: string | null;
@@ -20,21 +20,15 @@ export function ImageUpload({ value, onChange, label = "Upload Image", folder = 
       toast.error("Please select an image file");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5MB");
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be under 10MB");
       return;
     }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const filename = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage
-        .from("product-images")
-        .upload(filename, file, { cacheControl: "31536000", upsert: false });
-      if (error) throw error;
-      const { data } = supabase.storage.from("product-images").getPublicUrl(filename);
-      onChange(data.publicUrl);
-      setUrlInput(data.publicUrl);
+      const publicUrl = await uploadToBlob(file, folder);
+      onChange(publicUrl);
+      setUrlInput(publicUrl);
       toast.success("Image uploaded");
     } catch (e: any) {
       toast.error(e.message ?? "Upload failed");
@@ -124,21 +118,16 @@ export function GalleryUpload({ value, onChange }: GalleryProps) {
     try {
       for (const file of Array.from(files)) {
         if (!file.type.startsWith("image/")) continue;
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`${file.name} exceeds 5MB`);
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name} exceeds 10MB`);
           continue;
         }
-        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-        const filename = `gallery/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error } = await supabase.storage
-          .from("product-images")
-          .upload(filename, file, { cacheControl: "31536000" });
-        if (error) {
-          toast.error(error.message);
-          continue;
+        try {
+          const publicUrl = await uploadToBlob(file, "gallery");
+          uploaded.push(publicUrl);
+        } catch (err: any) {
+          toast.error(err.message || `Failed to upload ${file.name}`);
         }
-        const { data } = supabase.storage.from("product-images").getPublicUrl(filename);
-        uploaded.push(data.publicUrl);
       }
       if (uploaded.length) {
         onChange([...urls, ...uploaded].join(", "));

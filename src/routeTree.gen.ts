@@ -24,6 +24,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticated/wishlist'
+import { Route as ApiUploadRouteImport } from './routes/api.upload'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
@@ -117,6 +118,11 @@ const AuthenticatedWishlistRoute = AuthenticatedWishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiUploadRoute = ApiUploadRouteImport.update({
+  id: '/api/upload',
+  path: '/api/upload',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRouteWithChildren
   '/admin': typeof AuthenticatedAdminRoute
   '/wishlist': typeof AuthenticatedWishlistRoute
+  '/api/upload': typeof ApiUploadRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/p/$slug': typeof PSlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/wishlist': typeof AuthenticatedWishlistRoute
+  '/api/upload': typeof ApiUploadRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/p/$slug': typeof PSlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -313,6 +321,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/wishlist': typeof AuthenticatedWishlistRoute
+  '/api/upload': typeof ApiUploadRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/p/$slug': typeof PSlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -350,6 +359,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/wishlist'
+    | '/api/upload'
     | '/blog/$slug'
     | '/p/$slug'
     | '/product/$slug'
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/wishlist'
+    | '/api/upload'
     | '/blog/$slug'
     | '/p/$slug'
     | '/product/$slug'
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/wishlist'
+    | '/api/upload'
     | '/blog/$slug'
     | '/p/$slug'
     | '/product/$slug'
@@ -454,6 +466,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiUploadRoute: typeof ApiUploadRoute
   BlogSlugRoute: typeof BlogSlugRoute
   PSlugRoute: typeof PSlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
@@ -568,6 +581,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/wishlist'
       preLoaderRoute: typeof AuthenticatedWishlistRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/upload': {
+      id: '/api/upload'
+      path: '/api/upload'
+      fullPath: '/api/upload'
+      preLoaderRoute: typeof ApiUploadRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/blog/': {
       id: '/blog/'
@@ -781,6 +801,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiUploadRoute: ApiUploadRoute,
   BlogSlugRoute: BlogSlugRoute,
   PSlugRoute: PSlugRoute,
   ProductSlugRoute: ProductSlugRoute,
