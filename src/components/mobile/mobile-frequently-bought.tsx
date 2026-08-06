@@ -49,7 +49,7 @@ export function MobileFrequentlyBought({
       toast.success("Added bundle to cart with 15% discount!");
     } catch {
       // Handled in addToCart
-    } fontally {
+    } finally {
       setAdding(false);
     }
   };
