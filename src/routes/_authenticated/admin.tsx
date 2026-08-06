@@ -127,13 +127,26 @@ function AdminPage() {
   const NAV = ALL_NAV.filter((item) => {
     if (role === "admin") return true;
     if (role === "manager") {
-      return !["roles", "audit", "automations", "integrations", "data", "settings", "cache"].includes(item.id);
+      // Permission Matrix for Manager:
+      // ALLOWED: View dashboard, Manage products & catalog, Manage orders, Refunds & returns, Marketing & coupons, Content & CMS
+      // BLOCKED: Manage roles & team (roles, customers), Audit logs (audit), System config (settings, automations, integrations, data, cache)
+      return !["customers", "roles", "audit", "automations", "integrations", "data", "settings", "cache"].includes(item.id);
     }
     if (role === "staff") {
-      return ["dashboard", "orders", "returns", "products", "inventory", "messages"].includes(item.id);
+      // Permission Matrix for Staff:
+      // ALLOWED: View dashboard, Manage orders
+      // BLOCKED: Everything else
+      return ["dashboard", "reports", "orders"].includes(item.id);
     }
     return false;
   });
+
+  // Automatically enforce tab permission guard
+  useEffect(() => {
+    if (NAV.length > 0 && !NAV.some((n) => n.id === tab)) {
+      setTab(NAV[0].id);
+    }
+  }, [tab, NAV]);
 
   const grouped = NAV.reduce<Record<string, typeof NAV>>((acc, item) => {
     (acc[item.group] ||= []).push(item);
