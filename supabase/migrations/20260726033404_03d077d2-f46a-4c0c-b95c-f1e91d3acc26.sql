@@ -1,4 +1,4 @@
-CREATE TABLE public.product_reviews (
+CREATE TABLE IF NOT EXISTS public.product_reviews (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -17,6 +17,15 @@ GRANT INSERT, UPDATE, DELETE ON public.product_reviews TO authenticated;
 GRANT ALL ON public.product_reviews TO service_role;
 
 ALTER TABLE public.product_reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view approved reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Admins can view all reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can view own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can create own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can update own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can delete own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Admins can update any review" ON public.product_reviews;
+DROP POLICY IF EXISTS "Admins can delete any review" ON public.product_reviews;
 
 CREATE POLICY "Anyone can view approved reviews"
   ON public.product_reviews FOR SELECT
@@ -59,6 +68,7 @@ CREATE POLICY "Admins can delete any review"
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
 
+DROP TRIGGER IF EXISTS update_product_reviews_updated_at ON public.product_reviews;
 CREATE TRIGGER update_product_reviews_updated_at
   BEFORE UPDATE ON public.product_reviews
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

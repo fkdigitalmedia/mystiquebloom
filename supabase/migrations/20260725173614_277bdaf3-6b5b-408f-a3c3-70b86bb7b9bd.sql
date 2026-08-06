@@ -82,4 +82,5 @@ INSERT INTO public.blog_posts (slug, title, excerpt, cover_image, body, tags, pu
  'A rare glimpse into the Mystique workshop, where each bottle is filled, sealed, and inscribed by hand.',
  '/src/assets/gift-box.jpg',
  E'# Inside the Atelier\n\nBehind an unmarked door in old Kannauj, our atelier operates the way perfumeries have for four hundred years.\n\n## By Hand\n\nEvery bottle is filled by a single artisan who signs the base with a numbered seal. Our maximum production is 800 bottles per composition, per year.\n\n## Aged in Copper\n\nOur macerations rest in hand-hammered copper vessels — an ancestral choice that softens harsh notes and coaxes forth the fragrance''s truest character.\n\n## An Invitation\n\nBy appointment, patrons may visit the atelier and commission a bespoke fragrance built to their olfactory portrait.',
- ARRAY['atelier','heritage'], true, now());
+ ARRAY['atelier','heritage'], true, now())
+ON CONFLICT (slug) DO NOTHING;

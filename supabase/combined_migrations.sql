@@ -177,7 +177,8 @@ INSERT INTO public.collections (slug, name, tagline, description, sort_order) VA
   ('oud-reserve', 'The Oud Reserve', 'Rare aged oud from Assam & Cambodia', 'Twelve fragrances built around our most prized oud stocks â€” aged 12 to 25 years.', 1),
   ('rare-attars', 'Rare Attars', 'Hand-distilled traditional attars', 'Nine attars distilled in the traditional deg-bhapka method by master perfumers.', 2),
   ('royal-florals', 'Royal Florals', 'Rose, jasmine and tuberose', 'Fourteen floral compositions from the Kannauj rose fields and Grasse ateliers.', 3),
-  ('spiced-orient', 'Spiced Orient', 'Warm, resinous and ambered', 'Eight fragrances built on saffron, cardamom, amber and myrrh.', 4);
+  ('spiced-orient', 'Spiced Orient', 'Warm, resinous and ambered', 'Eight fragrances built on saffron, cardamom, amber and myrrh.', 4)
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products (slug, name, subtitle, description, fragrance_family, notes_top, notes_heart, notes_base, price_inr, compare_at_price_inr, volume_ml, stock, image_url, rating, review_count, is_bestseller, is_new, collection_id)
 VALUES
@@ -188,7 +189,8 @@ VALUES
   ('saffron-royale','Saffron Royale','Eau de Parfum Â· 50ml','Kashmiri saffron and leather over a warm amber base. Opulent and unmistakably regal.','Spice',ARRAY['Saffron','Elemi'],ARRAY['Leather','Rose'],ARRAY['Amber','Oud'],10500,NULL,50,30,'/src/assets/product-3.jpg',4.7,61,true,false,(SELECT id FROM public.collections WHERE slug='spiced-orient')),
   ('white-oud','White Oud','Eau de Parfum Â· 50ml','A luminous, powdery oud with iris, white amber and a soft musk drydown.','Oud',ARRAY['Iris','Bergamot'],ARRAY['White Oud','Orris'],ARRAY['White Amber','Musk'],13200,NULL,50,22,'/src/assets/product-1.jpg',4.8,88,false,true,(SELECT id FROM public.collections WHERE slug='oud-reserve')),
   ('jasmine-nuit','Jasmine Nuit','Eau de Parfum Â· 50ml','Night-blooming jasmine sambac layered with ylang and creamy sandalwood.','Floral',ARRAY['Neroli','Bergamot'],ARRAY['Jasmine Sambac','Ylang'],ARRAY['Sandalwood','Vanilla'],8900,NULL,50,45,'/src/assets/product-2.jpg',4.6,54,false,false,(SELECT id FROM public.collections WHERE slug='royal-florals')),
-  ('musk-attar','Musk Attar','Pure Attar Â· 12ml','A silky white musk attar with rose absolute and a dry cedar base.','Attar',ARRAY['Rose'],ARRAY['White Musk'],ARRAY['Cedar','Amber'],14500,NULL,12,12,'/src/assets/product-4.jpg',4.9,39,false,false,(SELECT id FROM public.collections WHERE slug='rare-attars'));
+  ('musk-attar','Musk Attar','Pure Attar Â· 12ml','A silky white musk attar with rose absolute and a dry cedar base.','Attar',ARRAY['Rose'],ARRAY['White Musk'],ARRAY['Cedar','Amber'],14500,NULL,12,12,'/src/assets/product-4.jpg',4.9,39,false,false,(SELECT id FROM public.collections WHERE slug='rare-attars'))
+ON CONFLICT (slug) DO NOTHING;
 
 REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
@@ -276,8 +278,9 @@ INSERT INTO public.blog_posts (slug, title, excerpt, cover_image, body, tags, pu
  'A rare glimpse into the Mystique workshop, where each bottle is filled, sealed, and inscribed by hand.',
  '/src/assets/gift-box.jpg',
  E'# Inside the Atelier\n\nBehind an unmarked door in old Kannauj, our atelier operates the way perfumeries have for four hundred years.\n\n## By Hand\n\nEvery bottle is filled by a single artisan who signs the base with a numbered seal. Our maximum production is 800 bottles per composition, per year.\n\n## Aged in Copper\n\nOur macerations rest in hand-hammered copper vessels â€” an ancestral choice that softens harsh notes and coaxes forth the fragrance''s truest character.\n\n## An Invitation\n\nBy appointment, patrons may visit the atelier and commission a bespoke fragrance built to their olfactory portrait.',
- ARRAY['atelier','heritage'], true, now());
-CREATE TABLE public.site_settings (
+ ARRAY['atelier','heritage'], true, now())
+ON CONFLICT (slug) DO NOTHING;
+CREATE TABLE IF NOT EXISTS public.site_settings (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   key TEXT NOT NULL UNIQUE,
   value JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -290,6 +293,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.site_settings TO authenticated;
 GRANT ALL ON public.site_settings TO service_role;
 
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can read site settings" ON public.site_settings;
+DROP POLICY IF EXISTS "Admins can insert site settings" ON public.site_settings;
+DROP POLICY IF EXISTS "Admins can update site settings" ON public.site_settings;
+DROP POLICY IF EXISTS "Admins can delete site settings" ON public.site_settings;
 
 CREATE POLICY "Public can read site settings"
   ON public.site_settings FOR SELECT
@@ -308,6 +316,7 @@ CREATE POLICY "Admins can delete site settings"
   ON public.site_settings FOR DELETE TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
 
+DROP TRIGGER IF EXISTS update_site_settings_updated_at ON public.site_settings;
 CREATE TRIGGER update_site_settings_updated_at
   BEFORE UPDATE ON public.site_settings
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -341,7 +350,8 @@ INSERT INTO public.site_settings (key, value) VALUES (
     },
     "footerTagline": "Composed in India. Worn worldwide."
   }'::jsonb
-);
+)
+ON CONFLICT (key) DO NOTHING;
 
 CREATE POLICY "Product images public read"
 ON storage.objects FOR SELECT
@@ -363,7 +373,7 @@ CREATE POLICY "Product images admin delete"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (bucket_id = 'product-images' AND public.has_role(auth.uid(), 'admin'));
-CREATE TABLE public.coupons (
+CREATE TABLE IF NOT EXISTS public.coupons (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   code TEXT NOT NULL UNIQUE,
   description TEXT,
@@ -383,6 +393,12 @@ GRANT INSERT, UPDATE, DELETE ON public.coupons TO authenticated;
 GRANT ALL ON public.coupons TO service_role;
 
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view active coupons" ON public.coupons;
+DROP POLICY IF EXISTS "Admins can view all coupons" ON public.coupons;
+DROP POLICY IF EXISTS "Admins can insert coupons" ON public.coupons;
+DROP POLICY IF EXISTS "Admins can update coupons" ON public.coupons;
+DROP POLICY IF EXISTS "Admins can delete coupons" ON public.coupons;
 
 CREATE POLICY "Anyone can view active coupons"
   ON public.coupons FOR SELECT
@@ -409,6 +425,7 @@ CREATE POLICY "Admins can delete coupons"
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
 
+DROP TRIGGER IF EXISTS update_coupons_updated_at ON public.coupons;
 CREATE TRIGGER update_coupons_updated_at
   BEFORE UPDATE ON public.coupons
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -421,8 +438,9 @@ INSERT INTO public.coupons (code, description, discount_type, discount_value, mi
 VALUES
   ('WELCOME10', 'Welcome offer â€” 10% off your first order', 'percent', 10, 0, true),
   ('MYSTIQUE500', 'Flat â‚¹500 off on orders above â‚¹5000', 'fixed', 500, 5000, true),
-  ('LUXE15', '15% off on orders above â‚¹10000', 'percent', 15, 10000, true);
-CREATE TABLE public.product_reviews (
+  ('LUXE15', '15% off on orders above â‚¹10000', 'percent', 15, 10000, true)
+ON CONFLICT (code) DO NOTHING;
+CREATE TABLE IF NOT EXISTS public.product_reviews (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -441,6 +459,15 @@ GRANT INSERT, UPDATE, DELETE ON public.product_reviews TO authenticated;
 GRANT ALL ON public.product_reviews TO service_role;
 
 ALTER TABLE public.product_reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view approved reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Admins can view all reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can view own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can create own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can update own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Users can delete own reviews" ON public.product_reviews;
+DROP POLICY IF EXISTS "Admins can update any review" ON public.product_reviews;
+DROP POLICY IF EXISTS "Admins can delete any review" ON public.product_reviews;
 
 CREATE POLICY "Anyone can view approved reviews"
   ON public.product_reviews FOR SELECT
@@ -483,6 +510,7 @@ CREATE POLICY "Admins can delete any review"
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
 
+DROP TRIGGER IF EXISTS update_product_reviews_updated_at ON public.product_reviews;
 CREATE TRIGGER update_product_reviews_updated_at
   BEFORE UPDATE ON public.product_reviews
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -524,7 +552,7 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS seo_title text;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS seo_description text;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS og_image_url text;
 
-CREATE TABLE public.contact_messages (
+CREATE TABLE IF NOT EXISTS public.contact_messages (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
@@ -536,6 +564,10 @@ GRANT INSERT ON public.contact_messages TO anon, authenticated;
 GRANT SELECT, UPDATE, DELETE ON public.contact_messages TO authenticated;
 GRANT ALL ON public.contact_messages TO service_role;
 ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can submit messages" ON public.contact_messages;
+DROP POLICY IF EXISTS "Admins can view messages" ON public.contact_messages;
+DROP POLICY IF EXISTS "Admins can update messages" ON public.contact_messages;
+DROP POLICY IF EXISTS "Admins can delete messages" ON public.contact_messages;
 CREATE POLICY "Anyone can submit messages" ON public.contact_messages FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Admins can view messages" ON public.contact_messages FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "Admins can update messages" ON public.contact_messages FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
@@ -549,7 +581,7 @@ CREATE POLICY "Anyone can submit messages" ON public.contact_messages
     AND length(email) BETWEEN 3 AND 200
     AND length(message) BETWEEN 1 AND 5000
   );
-CREATE TABLE public.user_addresses (
+CREATE TABLE IF NOT EXISTS public.user_addresses (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   label TEXT NOT NULL DEFAULT 'Home',
@@ -565,27 +597,29 @@ CREATE TABLE public.user_addresses (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE UNIQUE INDEX user_addresses_one_default_per_user
+CREATE UNIQUE INDEX IF NOT EXISTS user_addresses_one_default_per_user
   ON public.user_addresses (user_id) WHERE is_default;
 
-CREATE INDEX user_addresses_user_id_idx ON public.user_addresses (user_id);
+CREATE INDEX IF NOT EXISTS user_addresses_user_id_idx ON public.user_addresses (user_id);
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_addresses TO authenticated;
 GRANT ALL ON public.user_addresses TO service_role;
 
 ALTER TABLE public.user_addresses ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users manage own addresses" ON public.user_addresses;
 CREATE POLICY "Users manage own addresses"
   ON public.user_addresses FOR ALL
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP TRIGGER IF EXISTS update_user_addresses_updated_at ON public.user_addresses;
 CREATE TRIGGER update_user_addresses_updated_at
   BEFORE UPDATE ON public.user_addresses
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
-CREATE TABLE public.return_requests (
+CREATE TABLE IF NOT EXISTS public.return_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
@@ -603,6 +637,11 @@ GRANT ALL ON public.return_requests TO service_role;
 
 ALTER TABLE public.return_requests ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users view own returns" ON public.return_requests;
+DROP POLICY IF EXISTS "Users create own returns" ON public.return_requests;
+DROP POLICY IF EXISTS "Users update own pending returns" ON public.return_requests;
+DROP POLICY IF EXISTS "Admins manage returns" ON public.return_requests;
+
 CREATE POLICY "Users view own returns" ON public.return_requests
   FOR SELECT TO authenticated USING (auth.uid() = user_id OR public.has_role(auth.uid(),'admin'));
 
@@ -615,6 +654,7 @@ CREATE POLICY "Users update own pending returns" ON public.return_requests
 CREATE POLICY "Admins manage returns" ON public.return_requests
   FOR ALL TO authenticated USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
+DROP TRIGGER IF EXISTS update_return_requests_updated_at ON public.return_requests;
 CREATE TRIGGER update_return_requests_updated_at
   BEFORE UPDATE ON public.return_requests
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -639,6 +679,9 @@ GRANT ALL ON public.audit_logs TO service_role;
 
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins can view audit logs" ON public.audit_logs;
+DROP POLICY IF EXISTS "Staff can insert audit logs" ON public.audit_logs;
+
 CREATE POLICY "Admins can view audit logs"
 ON public.audit_logs FOR SELECT
 TO authenticated
@@ -655,8 +698,10 @@ WITH CHECK (
 
 CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx ON public.audit_logs (created_at DESC);
 CREATE INDEX IF NOT EXISTS audit_logs_actor_idx ON public.audit_logs (actor_id);
+DROP POLICY IF EXISTS "admins read carts" ON public.cart_items;
 CREATE POLICY "admins read carts" ON public.cart_items FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
 GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO anon, authenticated, service_role;
+DROP POLICY IF EXISTS "orders self cancel" ON public.orders;
 CREATE POLICY "orders self cancel" ON public.orders FOR UPDATE TO authenticated USING (auth.uid() = user_id AND status IN ('pending','confirmed')) WITH CHECK (auth.uid() = user_id AND status = 'cancelled');
 ALTER TABLE public.contact_messages
   ADD COLUMN IF NOT EXISTS admin_reply text,
@@ -669,7 +714,9 @@ CREATE POLICY "Admins can update contact_messages"
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
+DROP POLICY IF EXISTS "Users can view their own messages" ON public.contact_messages;
 CREATE POLICY "Users can view their own messages" ON public.contact_messages FOR SELECT TO authenticated USING (email = (auth.jwt() ->> 'email'));
+DROP POLICY IF EXISTS "Users delete own gift boxes" ON public.gift_boxes;
 CREATE POLICY "Users delete own gift boxes" ON public.gift_boxes FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 ALTER TABLE public.orders

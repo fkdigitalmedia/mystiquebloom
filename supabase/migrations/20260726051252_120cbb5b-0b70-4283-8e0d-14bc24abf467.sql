@@ -1,4 +1,4 @@
-CREATE TABLE public.user_addresses (
+CREATE TABLE IF NOT EXISTS public.user_addresses (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   label TEXT NOT NULL DEFAULT 'Home',
@@ -14,22 +14,24 @@ CREATE TABLE public.user_addresses (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE UNIQUE INDEX user_addresses_one_default_per_user
+CREATE UNIQUE INDEX IF NOT EXISTS user_addresses_one_default_per_user
   ON public.user_addresses (user_id) WHERE is_default;
 
-CREATE INDEX user_addresses_user_id_idx ON public.user_addresses (user_id);
+CREATE INDEX IF NOT EXISTS user_addresses_user_id_idx ON public.user_addresses (user_id);
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_addresses TO authenticated;
 GRANT ALL ON public.user_addresses TO service_role;
 
 ALTER TABLE public.user_addresses ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users manage own addresses" ON public.user_addresses;
 CREATE POLICY "Users manage own addresses"
   ON public.user_addresses FOR ALL
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP TRIGGER IF EXISTS update_user_addresses_updated_at ON public.user_addresses;
 CREATE TRIGGER update_user_addresses_updated_at
   BEFORE UPDATE ON public.user_addresses
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

@@ -177,7 +177,8 @@ INSERT INTO public.collections (slug, name, tagline, description, sort_order) VA
   ('oud-reserve', 'The Oud Reserve', 'Rare aged oud from Assam & Cambodia', 'Twelve fragrances built around our most prized oud stocks — aged 12 to 25 years.', 1),
   ('rare-attars', 'Rare Attars', 'Hand-distilled traditional attars', 'Nine attars distilled in the traditional deg-bhapka method by master perfumers.', 2),
   ('royal-florals', 'Royal Florals', 'Rose, jasmine and tuberose', 'Fourteen floral compositions from the Kannauj rose fields and Grasse ateliers.', 3),
-  ('spiced-orient', 'Spiced Orient', 'Warm, resinous and ambered', 'Eight fragrances built on saffron, cardamom, amber and myrrh.', 4);
+  ('spiced-orient', 'Spiced Orient', 'Warm, resinous and ambered', 'Eight fragrances built on saffron, cardamom, amber and myrrh.', 4)
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO public.products (slug, name, subtitle, description, fragrance_family, notes_top, notes_heart, notes_base, price_inr, compare_at_price_inr, volume_ml, stock, image_url, rating, review_count, is_bestseller, is_new, collection_id)
 VALUES
@@ -188,4 +189,5 @@ VALUES
   ('saffron-royale','Saffron Royale','Eau de Parfum · 50ml','Kashmiri saffron and leather over a warm amber base. Opulent and unmistakably regal.','Spice',ARRAY['Saffron','Elemi'],ARRAY['Leather','Rose'],ARRAY['Amber','Oud'],10500,NULL,50,30,'/src/assets/product-3.jpg',4.7,61,true,false,(SELECT id FROM public.collections WHERE slug='spiced-orient')),
   ('white-oud','White Oud','Eau de Parfum · 50ml','A luminous, powdery oud with iris, white amber and a soft musk drydown.','Oud',ARRAY['Iris','Bergamot'],ARRAY['White Oud','Orris'],ARRAY['White Amber','Musk'],13200,NULL,50,22,'/src/assets/product-1.jpg',4.8,88,false,true,(SELECT id FROM public.collections WHERE slug='oud-reserve')),
   ('jasmine-nuit','Jasmine Nuit','Eau de Parfum · 50ml','Night-blooming jasmine sambac layered with ylang and creamy sandalwood.','Floral',ARRAY['Neroli','Bergamot'],ARRAY['Jasmine Sambac','Ylang'],ARRAY['Sandalwood','Vanilla'],8900,NULL,50,45,'/src/assets/product-2.jpg',4.6,54,false,false,(SELECT id FROM public.collections WHERE slug='royal-florals')),
-  ('musk-attar','Musk Attar','Pure Attar · 12ml','A silky white musk attar with rose absolute and a dry cedar base.','Attar',ARRAY['Rose'],ARRAY['White Musk'],ARRAY['Cedar','Amber'],14500,NULL,12,12,'/src/assets/product-4.jpg',4.9,39,false,false,(SELECT id FROM public.collections WHERE slug='rare-attars'));
+  ('musk-attar','Musk Attar','Pure Attar · 12ml','A silky white musk attar with rose absolute and a dry cedar base.','Attar',ARRAY['Rose'],ARRAY['White Musk'],ARRAY['Cedar','Amber'],14500,NULL,12,12,'/src/assets/product-4.jpg',4.9,39,false,false,(SELECT id FROM public.collections WHERE slug='rare-attars'))
+ON CONFLICT (slug) DO NOTHING;

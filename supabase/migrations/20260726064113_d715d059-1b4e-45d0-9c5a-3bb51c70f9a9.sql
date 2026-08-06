@@ -16,6 +16,9 @@ GRANT ALL ON public.audit_logs TO service_role;
 
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins can view audit logs" ON public.audit_logs;
+DROP POLICY IF EXISTS "Staff can insert audit logs" ON public.audit_logs;
+
 CREATE POLICY "Admins can view audit logs"
 ON public.audit_logs FOR SELECT
 TO authenticated

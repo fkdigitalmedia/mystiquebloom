@@ -1,5 +1,5 @@
 
-CREATE TABLE public.contact_messages (
+CREATE TABLE IF NOT EXISTS public.contact_messages (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
@@ -11,6 +11,10 @@ GRANT INSERT ON public.contact_messages TO anon, authenticated;
 GRANT SELECT, UPDATE, DELETE ON public.contact_messages TO authenticated;
 GRANT ALL ON public.contact_messages TO service_role;
 ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can submit messages" ON public.contact_messages;
+DROP POLICY IF EXISTS "Admins can view messages" ON public.contact_messages;
+DROP POLICY IF EXISTS "Admins can update messages" ON public.contact_messages;
+DROP POLICY IF EXISTS "Admins can delete messages" ON public.contact_messages;
 CREATE POLICY "Anyone can submit messages" ON public.contact_messages FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Admins can view messages" ON public.contact_messages FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "Admins can update messages" ON public.contact_messages FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
