@@ -9,6 +9,39 @@ import { formatINR } from "@/lib/format";
 import { toast } from "sonner";
 import { uploadToBlob } from "@/lib/blob-upload";
 import { AdminDashboard } from "@/components/admin-dashboard";
+
+import { ProductsTab } from "@/components/admin/products-tab";
+import { CollectionsTab } from "@/components/admin/collections-tab";
+import { BlogTab } from "@/components/admin/blog-tab";
+import { OrdersTab } from "@/components/admin/orders-tab";
+import { GiftsTab } from "@/components/admin/gifts-tab";
+import { HomepageTab } from "@/components/admin/homepage-tab";
+import { CouponsTab } from "@/components/admin/coupons-tab";
+import { ReviewsTab } from "@/components/admin/reviews-tab";
+import { LoyaltyTab } from "@/components/admin/loyalty-tab";
+import { PagesTab } from "@/components/admin/pages-tab";
+import { NavigationTab } from "@/components/admin/navigation-tab";
+import { MessagesTab } from "@/components/admin/messages-tab";
+import { CustomersTab } from "@/components/admin/customers-tab";
+import { RolesTab } from "@/components/admin/roles-tab";
+import { AuditLogsTab } from "@/components/admin/auditlogs-tab";
+import { InventoryTab } from "@/components/admin/inventory-tab";
+import { ShippingTab } from "@/components/admin/shipping-tab";
+import { TaxesTab } from "@/components/admin/taxes-tab";
+import { MarketingTab } from "@/components/admin/marketing-tab";
+import { EmailTemplatesTab } from "@/components/admin/emailtemplates-tab";
+import { SeoTab } from "@/components/admin/seo-tab";
+import { MediaLibraryTab } from "@/components/admin/medialibrary-tab";
+import { BrandingTab } from "@/components/admin/branding-tab";
+import { AutomationsTab } from "@/components/admin/automations-tab";
+import { StoreSettingsTab } from "@/components/admin/storesettings-tab";
+import { IntegrationsTab } from "@/components/admin/integrations-tab";
+import { DataBackupTab } from "@/components/admin/databackup-tab";
+import { ReportsTab } from "@/components/admin/reports-tab";
+import { ReturnsTab } from "@/components/admin/returns-tab";
+import { AbandonedCartsTab } from "@/components/admin/abandonedcarts-tab";
+import { CacheTab } from "@/components/admin/cache-tab";
+
 import {
   LayoutDashboard,
   Package,
@@ -297,41 +330,3 @@ function AdminPage() {
     </div>
   );
 }
-
-import {
-  ProductsTab,
-  CollectionsTab,
-  BlogTab,
-  OrdersTab,
-  GiftsTab,
-  CouponsTab,
-  ReviewsTab,
-  LoyaltyTab,
-  HomepageTab,
-} from "@/components/admin/admin-tabs-commerce";
-import {
-  PagesTab,
-  NavigationTab,
-  MessagesTab,
-  CustomersTab,
-  RolesTab,
-  AuditLogsTab,
-  InventoryTab,
-  ShippingTab,
-  TaxesTab,
-  MarketingTab,
-} from "@/components/admin/admin-tabs-operations";
-import {
-  EmailTemplatesTab,
-  SeoTab,
-  MediaLibraryTab,
-  BrandingTab,
-  AutomationsTab,
-  IntegrationsTab,
-  DataBackupTab,
-  StoreSettingsTab,
-  ReportsTab,
-  ReturnsTab,
-  AbandonedCartsTab,
-  CacheTab,
-} from "@/components/admin/admin-tabs-system";
