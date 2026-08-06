@@ -99,13 +99,17 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
             <Link to={user ? "/wishlist" : "/auth"} aria-label="Wishlist" className="hidden sm:inline-flex text-cream/70 hover:text-gold transition-colors">
               <Heart size={18} strokeWidth={1} />
             </Link>
-            <Link to={user ? (role === "admin" ? "/admin" : "/account") : "/auth"} aria-label="Account" className="hidden sm:inline-flex text-cream/70 hover:text-gold transition-colors">
-              <User size={18} strokeWidth={1} />
+            <Link
+              to={user ? (role === "admin" ? "/admin" : "/account") : "/auth"}
+              className="flex items-center gap-2 px-3 md:px-4 h-9 rounded-sm border border-cream/20 hover:border-gold text-cream hover:text-gold transition-colors text-[10px] uppercase tracking-[0.25em] font-medium shrink-0"
+            >
+              <User size={14} strokeWidth={1.5} className="text-gold" />
+              <span>{user ? (role === "admin" ? "Admin" : "Account") : "Login"}</span>
             </Link>
             <button
               onClick={() => setCartOpen(true)}
               aria-label="Cart"
-              className="ml-1 flex items-center gap-2 px-3 md:px-4 h-9 rounded-sm border border-gold/30 hover:border-gold transition-colors group"
+              className="ml-1 flex items-center gap-2 px-3 md:px-4 h-9 rounded-sm border border-gold/30 hover:border-gold transition-colors group shrink-0"
             >
               <ShoppingBag size={15} strokeWidth={1.5} className="text-gold" />
               <span className="text-[10px] uppercase tracking-[0.25em] font-medium text-cream">Cart</span>
