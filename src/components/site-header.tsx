@@ -50,7 +50,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
       {/* Subtle gold top edge */}
       <div className="h-px w-full bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-10 h-20 flex items-center justify-between gap-6">
+      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-10 h-16 md:h-20 flex items-center justify-between gap-2 md:gap-6 w-full max-w-full overflow-hidden">
         {/* Left link group */}
         <nav className="hidden lg:flex flex-1 items-center gap-8">
           {leftNav.map((n) => (
@@ -60,7 +60,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
 
         <button
           onClick={() => setMenuOpen(true)}
-          className="lg:hidden text-cream hover:text-gold"
+          className="lg:hidden text-cream hover:text-gold touch-target p-2"
           aria-label="Open menu"
         >
           <Menu size={20} />
@@ -71,43 +71,44 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           <img
             src={logoImg}
             alt="Mystique Blends"
-            className="h-12 md:h-14 w-auto object-contain"
+            className="h-9 md:h-14 w-auto object-contain"
             style={{ filter: "invert(1) brightness(1.05)" }}
           />
         </Link>
 
         {/* Right link group + icons */}
-        <div className="flex flex-1 items-center justify-end gap-6 lg:gap-8">
+        <div className="flex flex-1 items-center justify-end gap-2 md:gap-6 lg:gap-8">
           <nav className="hidden xl:flex items-center gap-8">
             {rightNav.map((n) => (
               <NavLink key={n.href} href={n.href} label={n.label} />
             ))}
           </nav>
 
-          <div className="flex items-center gap-3 md:gap-5 xl:border-l xl:border-graphite xl:pl-8">
-            <Link to="/search" aria-label="Search" className="text-cream/70 hover:text-gold transition-colors">
-              <Search size={18} strokeWidth={1} />
+          <div className="flex items-center gap-2 md:gap-5 xl:border-l xl:border-graphite xl:pl-8">
+            <Link to="/search" aria-label="Search" className="text-cream/70 hover:text-gold transition-colors p-2">
+              <Search size={18} strokeWidth={1.5} />
             </Link>
-            <Link to="/compare" aria-label="Compare" className="relative hidden sm:inline-flex text-cream/70 hover:text-gold transition-colors">
-              <GitCompareArrows size={18} strokeWidth={1} />
+            <Link to="/compare" aria-label="Compare" className="relative hidden sm:inline-flex text-cream/70 hover:text-gold transition-colors p-2">
+              <GitCompareArrows size={18} strokeWidth={1.5} />
               {compareIds.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 h-4 min-w-4 px-1 bg-gold text-obsidian text-[9px] grid place-items-center rounded-full font-medium">
+                <span className="absolute top-0 right-0 h-4 min-w-4 px-1 bg-gold text-obsidian text-[9px] grid place-items-center rounded-full font-medium">
                   {compareIds.length}
                 </span>
               )}
             </Link>
-            <Link to={user ? "/wishlist" : "/auth"} aria-label="Wishlist" className="hidden sm:inline-flex text-cream/70 hover:text-gold transition-colors">
-              <Heart size={18} strokeWidth={1} />
+            <Link to={user ? "/wishlist" : "/auth"} aria-label="Wishlist" className="hidden sm:inline-flex text-cream/70 hover:text-gold transition-colors p-2">
+              <Heart size={18} strokeWidth={1.5} />
             </Link>
             {(() => {
               const isStaffOrAdmin = role && role !== "customer";
               return (
                 <Link
                   to={user ? (isStaffOrAdmin ? "/admin" : "/account") : "/auth"}
-                  className="flex items-center gap-2 px-3 md:px-4 h-9 rounded-sm border border-cream/20 hover:border-gold text-cream hover:text-gold transition-colors text-[10px] uppercase tracking-[0.25em] font-medium shrink-0"
+                  aria-label="Account"
+                  className="flex items-center gap-2 px-2.5 md:px-4 h-9 rounded-sm border border-cream/20 hover:border-gold text-cream hover:text-gold transition-colors text-[10px] uppercase tracking-[0.2em] font-medium shrink-0"
                 >
-                  <User size={14} strokeWidth={1.5} className="text-gold" />
-                  <span>
+                  <User size={15} strokeWidth={1.5} className="text-gold" />
+                  <span className="hidden md:inline">
                     {user
                       ? isStaffOrAdmin
                         ? role === "admin"
@@ -124,10 +125,10 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
             <button
               onClick={() => setCartOpen(true)}
               aria-label="Cart"
-              className="ml-1 flex items-center gap-2 px-3 md:px-4 h-9 rounded-sm border border-gold/30 hover:border-gold transition-colors group shrink-0"
+              className="flex items-center gap-1.5 px-2.5 md:px-4 h-9 rounded-sm border border-gold/30 hover:border-gold transition-colors group shrink-0"
             >
               <ShoppingBag size={15} strokeWidth={1.5} className="text-gold" />
-              <span className="text-[10px] uppercase tracking-[0.25em] font-medium text-cream">Cart</span>
+              <span className="hidden md:inline text-[10px] uppercase tracking-[0.2em] font-medium text-cream">Cart</span>
               <span className="text-[9px] bg-gold text-obsidian px-1.5 py-0.5 font-bold min-w-[18px] text-center rounded-full leading-none">
                 {count}
               </span>
@@ -167,14 +168,14 @@ function SiteFooterInner() {
   const { data } = useFooterPages();
   const footerPages = (data ?? []).filter((p: FooterPage) => p.showInFooter);
   return (
-    <footer className="mt-32 border-t border-cream/10 bg-obsidian text-cream">
-      <div className="mx-auto max-w-7xl px-6 py-16 grid grid-cols-2 md:grid-cols-5 gap-10">
-        <div className="col-span-2">
+    <footer className="mt-20 md:mt-32 border-t border-cream/10 bg-obsidian text-cream w-full max-w-full overflow-hidden">
+      <div className="mx-auto max-w-7xl px-4 md:px-6 py-12 md:py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 md:gap-10">
+        <div className="col-span-1 sm:col-span-2">
           <div className="flex items-center leading-none">
             <img
               src={logoImg}
               alt="Mystique Blends"
-              className="h-14 w-auto object-contain"
+              className="h-12 md:h-14 w-auto object-contain"
               style={{ filter: "invert(1) brightness(1.05)" }}
             />
           </div>
@@ -216,7 +217,7 @@ function SiteFooterInner() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-cream/10 py-6 text-center text-xs text-cream/40">
+      <div className="border-t border-cream/10 py-6 text-center text-xs text-cream/40 px-4">
         © {new Date().getFullYear()} Mystique Blends. Crafted in Kannauj.
       </div>
     </footer>
@@ -238,5 +239,3 @@ function useFooterPages() {
     staleTime: 60_000,
   });
 }
-
-

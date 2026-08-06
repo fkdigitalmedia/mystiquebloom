@@ -81,15 +81,32 @@
 }
 
 @layer base {
-  * {
+  *, ::before, ::after {
     border-color: var(--color-border);
+    box-sizing: border-color-box;
   }
 
-  html {
+  html, body {
+    max-width: 100vw;
+    width: 100%;
+    overflow-x: hidden !important;
+    position: relative;
+    margin: 0;
+    padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+  }
+
+  #root, #app, main, header, footer, section {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  img, video, svg, canvas, iframe {
+    max-width: 100%;
+    height: auto;
   }
 
   body {
