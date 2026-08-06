@@ -1,0 +1,246 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* -------------------------------------------------------------------------
+ * MYSTIQUE BLENDS — Luxury design tokens
+ * Palette: obsidian, antique gold, cream, graphite. Type: Cormorant + Inter.
+ * ------------------------------------------------------------------------- */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Luxury brand tokens */
+  --color-obsidian: var(--obsidian);
+  --color-graphite: var(--graphite);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-cream: var(--cream);
+  --color-cream-dim: var(--cream-dim);
+
+  --font-serif: "Cormorant Garamond", "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 0.25rem;
+
+  /* Default (dark luxury) shadcn mapping — Mystique runs dark by default */
+  --background: #0a0a0a;
+  --foreground: #f8f4ec;
+  --card: #141414;
+  --card-foreground: #f8f4ec;
+  --popover: #141414;
+  --popover-foreground: #f8f4ec;
+  --primary: #d4af37;
+  --primary-foreground: #0a0a0a;
+  --secondary: #202020;
+  --secondary-foreground: #f8f4ec;
+  --muted: #1a1a1a;
+  --muted-foreground: #a8a196;
+  --accent: #d4af37;
+  --accent-foreground: #0a0a0a;
+  --destructive: #b3261e;
+  --destructive-foreground: #f8f4ec;
+  --border: rgba(248, 244, 236, 0.08);
+  --input: rgba(248, 244, 236, 0.12);
+  --ring: #d4af37;
+
+  /* Brand palette */
+  --obsidian: #0a0a0a;
+  --graphite: #202020;
+  --gold: #d4af37;
+  --gold-soft: #b8963a;
+  --cream: #f8f4ec;
+  --cream-dim: rgba(248, 244, 236, 0.7);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--gold) 40%, transparent);
+    color: var(--cream);
+  }
+}
+
+/* Luxury utilities */
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility text-pretty {
+  text-wrap: pretty;
+}
+
+@utility tracking-luxury {
+  letter-spacing: 0.3em;
+}
+
+@utility gold-underline {
+  position: relative;
+  display: inline-block;
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 100%;
+    background: var(--gold);
+    transform-origin: right;
+    transform: scaleX(0);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  &:hover::after {
+    transform-origin: left;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@utility animate-fade-up {
+  animation: fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@utility animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+@utility gold-shimmer {
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 35%,
+      rgba(248, 244, 236, 0.35) 50%,
+      transparent 65%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  &:hover::before {
+    transform: translateX(200%);
+  }
+}
+
+/* Admin form inputs */
+.input-mystique {
+  @apply w-full bg-transparent border border-cream/15 focus:border-gold outline-none px-4 py-2.5 text-cream;
+}
+
+/* Blog article prose */
+.prose-mystique {
+  color: rgb(248 244 236 / 0.85);
+  line-height: 1.75;
+  font-size: 1.05rem;
+}
+.prose-mystique h1 {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  color: #f8f4ec;
+  margin: 2.5rem 0 1rem;
+  line-height: 1.15;
+}
+.prose-mystique h2 {
+  font-family: var(--font-serif);
+  font-size: 1.875rem;
+  color: #f8f4ec;
+  margin: 2rem 0 0.75rem;
+  line-height: 1.2;
+}
+.prose-mystique h3 {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: #f8f4ec;
+  margin: 1.5rem 0 0.5rem;
+}
+.prose-mystique p {
+  margin: 1.1rem 0;
+}
+.prose-mystique strong {
+  color: #d4af37;
+  font-weight: 500;
+}
+.prose-mystique blockquote {
+  border-left: 2px solid #d4af37;
+  padding: 0.25rem 0 0.25rem 1.5rem;
+  margin: 2rem 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.35rem;
+  color: #f8f4ec;
+}

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.apply_order_loyalty() FROM PUBLIC, anon, authenticated;

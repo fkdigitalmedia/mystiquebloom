@@ -1,0 +1,1 @@
+CREATE POLICY "orders self cancel" ON public.orders FOR UPDATE TO authenticated USING (auth.uid() = user_id AND status IN ('pending','confirmed')) WITH CHECK (auth.uid() = user_id AND status = 'cancelled');

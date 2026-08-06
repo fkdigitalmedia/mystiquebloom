@@ -1,0 +1,1 @@
+CREATE POLICY "Users can view their own messages" ON public.contact_messages FOR SELECT TO authenticated USING (email = (auth.jwt() ->> 'email'));
