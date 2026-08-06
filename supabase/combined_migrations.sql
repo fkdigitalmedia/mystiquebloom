@@ -360,6 +360,10 @@ INSERT INTO public.site_settings (key, value) VALUES (
   }'::jsonb
 )
 ON CONFLICT (key) DO NOTHING;
+DROP POLICY IF EXISTS "Product images public read" ON storage.objects;
+DROP POLICY IF EXISTS "Product images admin insert" ON storage.objects;
+DROP POLICY IF EXISTS "Product images admin update" ON storage.objects;
+DROP POLICY IF EXISTS "Product images admin delete" ON storage.objects;
 
 CREATE POLICY "Product images public read"
 ON storage.objects FOR SELECT
