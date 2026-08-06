@@ -843,6 +843,9 @@ USING (bucket_id = 'product-images');
 -- Add email column to profiles table if not present
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
 
+-- Ensure authenticated users have full DML permissions on user_roles table
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_roles TO authenticated;
+
 -- Helper function to check if user is admin safely without RLS recursion or table permission errors
 CREATE OR REPLACE FUNCTION public.is_admin(_user_id uuid)
 RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
@@ -859,7 +862,7 @@ BEGIN
 END;
 $$;
 
--- Drop existing restricted SELECT policies on profiles and user_roles
+-- Drop existing restricted policies on profiles and user_roles
 DROP POLICY IF EXISTS "profiles self read" ON public.profiles;
 DROP POLICY IF EXISTS "users read own roles" ON public.user_roles;
 DROP POLICY IF EXISTS "Admins read all profiles" ON public.profiles;
@@ -868,6 +871,8 @@ DROP POLICY IF EXISTS "Admins and self read profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins and self read user_roles" ON public.user_roles;
 DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Admins manage user_roles" ON public.user_roles;
+DROP POLICY IF EXISTS "Users read own user_roles" ON public.user_roles;
 
 -- Create comprehensive SELECT, INSERT, UPDATE policies for profiles
 CREATE POLICY "Admins and self read profiles"
@@ -884,12 +889,16 @@ CREATE POLICY "Users can update own profile"
 ON public.profiles FOR UPDATE TO authenticated
 USING (auth.uid() = id OR public.is_admin(auth.uid()));
 
--- Create comprehensive SELECT policies for user_roles
-CREATE POLICY "Admins and self read user_roles"
+-- Create ALL policy for Admins on user_roles (allows SELECT, INSERT, UPDATE, DELETE)
+CREATE POLICY "Admins manage user_roles"
+ON public.user_roles FOR ALL TO authenticated
+USING (public.is_admin(auth.uid()))
+WITH CHECK (public.is_admin(auth.uid()));
+
+-- Create SELECT policy for regular users to read their own roles
+CREATE POLICY "Users read own user_roles"
 ON public.user_roles FOR SELECT TO authenticated
-USING (
-  public.is_admin(auth.uid()) OR auth.uid() = user_id
-);
+USING (auth.uid() = user_id);
 
 -- Update handle_new_user trigger to save email into profiles table
 CREATE OR REPLACE FUNCTION public.handle_new_user()
