@@ -98,7 +98,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         fetchCart(),
         supabase.from("wishlist").select("product_id").eq("user_id", user.id),
       ]);
-      const isAdmin = roles?.some((r) => r.role === "admin");
+      const ADMIN_EMAILS = ["goanews2068@gmail.com"];
+      const isAdmin =
+        roles?.some((r) => r.role === "admin") ||
+        (user.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false);
       setRole(isAdmin ? "admin" : "customer");
       setItems(cart);
       setWishIds(new Set((wish.data ?? []).map((w: any) => w.product_id)));
